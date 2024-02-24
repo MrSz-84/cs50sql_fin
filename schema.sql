@@ -8,9 +8,9 @@ CREATE TYPE "pl_dow" AS ENUM('Poniedziałek', 'Wtorek', 'Środa',
 );
 
 -- Table injecting Polish day of week names into the date_time table.
-CREATE TABLE IF NOT EXISTS "pl_dow_name" (
-    "id" SERIAL UNIQUE,
-    "dow_name" VARCHAR(12) NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS "pl_dow_names" (
+    "id" SERIAL,
+    "dow_name" "pl_dow" NOT NULL UNIQUE,
     PRIMARY KEY("id")
 );
 
@@ -21,8 +21,8 @@ CREATE TYPE "pl_month" AS ENUM('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj',
 );
 
 -- Table injecting Piolish month names into the date_time table.
-CREATE TABLE IF NOT EXISTS "pl_month_name" (
-    "id" SERIAL UNIQUE,
+CREATE TABLE IF NOT EXISTS "pl_month_names" (
+    "id" SERIAL,
     "month_name" "pl_month" NOT NULL UNIQUE,
     PRIMARY KEY("id")
 );
@@ -30,19 +30,36 @@ CREATE TABLE IF NOT EXISTS "pl_month_name" (
 -- Create date tables for further filtration and aggregation of data.
 -- This table is going to be related to by few others to guarantee e.g. valid joining.
 CREATE TABLE IF NOT EXISTS "date_time" (
-    "id" SERIAL UNIQUE,
-    "date" DATE NOT NULL UNIQUE,
+    "id" SERIAL,
+    "date" DATE NOT NULL UNIQUE CHECK(LENGTH("date") = 10),
     "day" SMALLINT CHECK("day" BETWEEN 1 AND 31),
     "day_of_week" SMALLINT CHECK("day_of_week" BETWEEN 1 AND 7),
     "week" SMALLINT CHECK("week" BETWEEN 1 AND 53),
     "year" SMALLINT CHECK("year" BETWEEN 1900 AND 9999),
     "month" SMALLINT CHECK("month" BETWEEN 1 AND 12),
     PRIMARY KEY("id"),
-    FOREIGN KEY("day_of_week") REFERENCES "pl_dow_name"("id"),
-    FOREIGN KEY("month") REFERENCES "pl_month_name"("id")
+    FOREIGN KEY("day_of_week") REFERENCES "pl_dow_names"("id"),
+    FOREIGN KEY("month") REFERENCES "pl_month_names"("id")
 );
 
+-- Create ad_brands ENUM type for brand table.
+CREATE TYPE "ad_brand" AS ENUM('EURO APPLIANCES', 'MEDIA MASTER', 'MEDIA SHOP', 'NEWNET');
+
+-- Create brands table
+CREATE TABLE IF NOT EXISTS "brands" (
+    "id" SERIAL,
+    "brand" "ad_brand" NOT NULL UNIQUE,
+    PRIMARY KEY("id")
+);
+
+-- Create main table with ads emitted through radio estations across country. 
+-- This is the table which holds all the data, and to which other tables point.
 CREATE TABLE IF NOT EXISTS "ads_desc" (
+    "id" SERIAL,
+    "date" DATE NOT NULL CHECK(LENGTH("date") = 10),
+    "ad_description" VARCHAR(200) NOT NULL,
+    "ad_code" INTEGER NOT NULL,
+    "brand_id" SMALLINT NOT NULL,
 
 )
 
