@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS "pl_month_names" (
 -- This table is going to be related to by few others to guarantee e.g. valid joining.
 CREATE TABLE IF NOT EXISTS "date_time" (
     "id" SERIAL,
-    "date" DATE NOT NULL UNIQUE CHECK(LENGTH("date") = 10),
+    "date" DATE NOT NULL UNIQUE,
     "day" SMALLINT CHECK("day" BETWEEN 1 AND 31),
     "day_of_week" SMALLINT CHECK("day_of_week" BETWEEN 1 AND 7),
     "week" SMALLINT CHECK("week" BETWEEN 1 AND 53),
@@ -52,24 +52,21 @@ CREATE TABLE IF NOT EXISTS "brands" (
     PRIMARY KEY("id")
 );
 
--- Create main table with ads emitted through radio estations across country. 
--- This is the table which holds all the data, and to which other tables point.
-CREATE TABLE IF NOT EXISTS "ads_desc" (
+-- References brodcasters name for mediums table.
+CREATE TABLE IF NOT EXISTS "broadcasters" (
     "id" SERIAL,
-    "date" DATE NOT NULL CHECK(LENGTH("date") = 10),
-    "ad_description" VARCHAR(200) NOT NULL,
-    "ad_code" INTEGER NOT NULL,
-    "brand_id" SMALLINT NOT NULL,
-    "medium_id" SMALLINT NOT NULL,
-    "ad_time_details_id" SMALLINT NOT NULL,
-    "product_type_id" SMALLINT NOT NULL,
-    "cost" INT,
-    "num_of_emmisions" SMALLINT NOT NULL CHECK("num_ofemissions" > 0),
-    "type" VARCHAR(50) NOT NULL DEFAULT 'advertisement',
-    PRIMARY KEY("id"),
-    FOREIGN KEY("brand_id") REFERENCES "brands"("id"),
-    FOREIGN KEY("medium_id") REFERENCES "mediums"("id"),
+    "broadcaster" VARCHAR(50) NOT NULL UNIQUE,
+    PRIMARY KEY("id")
+);
 
+-- Creates ENUM type for reach types.
+CREATE TYPE "reach_type" AS ENUM('krajowe', 'miejskie', 'ponadregionalne', 'regionalne');
+
+-- References reach of given radio station for mediums table.
+CREATE TABLE IF NOT EXISTS "ad_reach" (
+    "id" SERIAL,
+    "reach" "reach_type" NOT NULL UNIQUE,
+    PRIMARY KEY("id")
 );
 
 -- Crteates table containing radiostactions, their parent entity (broadcaster),
@@ -78,27 +75,13 @@ CREATE TABLE IF NOT EXISTS "mediums" (
     "id" SERIAL,
     "submedium" VARCHAR(50) NOT NULL UNIQUE,
     "broadcaster_id" SMALLINT NOT NULL,
-    "reach_id" SMALLINT NOT NULL,
+    "ad_reach_id" SMALLINT NOT NULL,
     PRIMARY KEY("id"),
     FOREIGN KEY("broadcaster_id") REFERENCES "broadcasters"("id"),
-    FOREIGN KEY("reach_id") REFERENCES "reach"("id"),
-);
-
--- Refferences brodcasters name for medium table.
-CREATE TABLE IF NOT EXISTS "broadcasters" (
-    "id" SERIAL,
-    "broadcaster" VARCHAR(50) NOT NULL UNIQUE,
-    PRIMARY KEY("id")
+    FOREIGN KEY("ad_reach_id") REFERENCES "ad_reach"("id")
 );
 
 
-CREATE TYPE AS "reach_type" ENUM('krajowe', 'miejskie', 'ponadregionalne', 'regionalne')
-
-CREATE TABLE IF NOT EXISTS "reach" (
-    "id" SERIAL,
-    "reach" "reach_type" NOT NULL UNIQUE,
-    PRIMARY KEY("id")
-);
 
 -- CREATE TRIGGER "populate_date_time"
 -- AFTER INSERT ON "date_time"
