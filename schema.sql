@@ -60,9 +60,45 @@ CREATE TABLE IF NOT EXISTS "ads_desc" (
     "ad_description" VARCHAR(200) NOT NULL,
     "ad_code" INTEGER NOT NULL,
     "brand_id" SMALLINT NOT NULL,
+    "medium_id" SMALLINT NOT NULL,
+    "ad_time_details_id" SMALLINT NOT NULL,
+    "product_type_id" SMALLINT NOT NULL,
+    "cost" INT,
+    "num_of_emmisions" SMALLINT NOT NULL CHECK("num_ofemissions" > 0),
+    "type" VARCHAR(50) NOT NULL DEFAULT 'advertisement',
+    PRIMARY KEY("id"),
+    FOREIGN KEY("brand_id") REFERENCES "brands"("id"),
+    FOREIGN KEY("medium_id") REFERENCES "mediums"("id"),
 
-)
+);
 
+-- Crteates table containing radiostactions, their parent entity (broadcaster),
+-- and the reach of each medium.
+CREATE TABLE IF NOT EXISTS "mediums" (
+    "id" SERIAL,
+    "submedium" VARCHAR(50) NOT NULL UNIQUE,
+    "broadcaster_id" SMALLINT NOT NULL,
+    "reach_id" SMALLINT NOT NULL,
+    PRIMARY KEY("id"),
+    FOREIGN KEY("broadcaster_id") REFERENCES "broadcasters"("id"),
+    FOREIGN KEY("reach_id") REFERENCES "reach"("id"),
+);
+
+-- Refferences brodcasters name for medium table.
+CREATE TABLE IF NOT EXISTS "broadcasters" (
+    "id" SERIAL,
+    "broadcaster" VARCHAR(50) NOT NULL UNIQUE,
+    PRIMARY KEY("id")
+);
+
+
+CREATE TYPE AS "reach_type" ENUM('krajowe', 'miejskie', 'ponadregionalne', 'regionalne')
+
+CREATE TABLE IF NOT EXISTS "reach" (
+    "id" SERIAL,
+    "reach" "reach_type" NOT NULL UNIQUE,
+    PRIMARY KEY("id")
+);
 
 -- CREATE TRIGGER "populate_date_time"
 -- AFTER INSERT ON "date_time"
