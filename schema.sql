@@ -2,22 +2,32 @@
 -- your database, including the CREATE TABLE, CREATE INDEX, 
 -- CREATE VIEW, etc. statements that compose it
 
+-- TYPES SECTION
 -- Create ENUM type for pl dow names.
 CREATE TYPE "pl_dow" AS ENUM('Poniedziałek', 'Wtorek', 'Środa',
     'Czwartek', 'Piątek', 'Sobota', 'Niedziela'
-);
-
--- Table injecting Polish day of week names into the date_time table.
-CREATE TABLE IF NOT EXISTS "pl_dow_names" (
-    "id" SERIAL,
-    "dow_name" "pl_dow" NOT NULL UNIQUE,
-    PRIMARY KEY("id")
 );
 
 -- Create Enum type for pl month names.
 CREATE TYPE "pl_month" AS ENUM('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 
     'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 
     'Listopad', 'Grudzień'
+);
+
+-- Create ad_brands ENUM type for brand table.
+CREATE TYPE "ad_brand" AS ENUM('EURO APPLIANCES', 'MEDIA MASTER', 
+'MEDIA SHOP', 'NEWNET');
+
+-- Creates ENUM type for reach types.
+CREATE TYPE "reach_type" AS ENUM('krajowe', 'miejskie', 
+'ponadregionalne', 'regionalne');
+
+
+-- Table injecting Polish day of week names into the date_time table.
+CREATE TABLE IF NOT EXISTS "pl_dow_names" (
+    "id" SERIAL,
+    "dow_name" "pl_dow" NOT NULL UNIQUE,
+    PRIMARY KEY("id")
 );
 
 -- Table injecting Piolish month names into the date_time table.
@@ -42,9 +52,6 @@ CREATE TABLE IF NOT EXISTS "date_time" (
     FOREIGN KEY("month") REFERENCES "pl_month_names"("id")
 );
 
--- Create ad_brands ENUM type for brand table.
-CREATE TYPE "ad_brand" AS ENUM('EURO APPLIANCES', 'MEDIA MASTER', 'MEDIA SHOP', 'NEWNET');
-
 -- Create brands table
 CREATE TABLE IF NOT EXISTS "brands" (
     "id" SERIAL,
@@ -59,8 +66,6 @@ CREATE TABLE IF NOT EXISTS "broadcasters" (
     PRIMARY KEY("id")
 );
 
--- Creates ENUM type for reach types.
-CREATE TYPE "reach_type" AS ENUM('krajowe', 'miejskie', 'ponadregionalne', 'regionalne');
 
 -- References reach of given radio station for mediums table.
 CREATE TABLE IF NOT EXISTS "ad_reach" (
@@ -81,7 +86,24 @@ CREATE TABLE IF NOT EXISTS "mediums" (
     FOREIGN KEY("ad_reach_id") REFERENCES "ad_reach"("id")
 );
 
-
+-- Create main table with ads emitted through radio estations across country. 
+-- This is the table which holds all the data, and to which other tables point.
+CREATE TABLE IF NOT EXISTS "ads_desc" (
+    "id" SERIAL,
+    "date" DATE NOT NULL,
+    "ad_description" VARCHAR(200) NOT NULL,
+    "ad_code" INTEGER NOT NULL,
+    "brand_id" SMALLINT NOT NULL,
+    "medium_id" SMALLINT NOT NULL,
+    "ad_time_details_id" SMALLINT NOT NULL,
+    "product_type_id" SMALLINT NOT NULL,
+    "cost" INT,
+    "num_of_emissions" SMALLINT NOT NULL CHECK("num_of_emissions" > 0),
+    "type" VARCHAR(50) NOT NULL DEFAULT 'advertisement',
+    PRIMARY KEY("id"),
+    FOREIGN KEY("brand_id") REFERENCES "brands"("id"),
+    FOREIGN KEY("medium_id") REFERENCES "mediums"("id")
+);
 
 -- CREATE TRIGGER "populate_date_time"
 -- AFTER INSERT ON "date_time"
