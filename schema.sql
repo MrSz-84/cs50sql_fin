@@ -151,8 +151,100 @@ CREATE TABLE IF NOT EXISTS "ads_desc" (
     FOREIGN KEY("brand_id") REFERENCES "brands"("id"),
     FOREIGN KEY("medium_id") REFERENCES "mediums"("id"),
     FOREIGN KEY("ad_time_details_id") REFERENCES "ad_time_details"("id"),
-    FOREIGN KEY("product_type_id") REFERENCES "product_types"("id")
+    FOREIGN KEY("product_type_id") REFERENCES "product_types"("id"),
+    FOREIGN KEY("date") REFERENCES "date_time"("date")
 );
+
+
+-- PROCEDURES, FUNCTIONS, TRIGGER FUNCTIONS SECTION --
+CREATE OR REPLACE FUNCTION extract_day()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS
+$$
+BEGIN
+    IF NEW."day" IS NULL THEN
+        UPDATE "date_time" SET "day" = EXTRACT(DAY FROM NEW."data")
+        WHERE "id" = NEW."id";
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION extract_dow()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS
+$$
+BEGIN
+    IF NEW."day_of_week" IS NULL THEN
+        UPDATE "date_time" SET "day_of_week" = EXTRACT(ISODOW FROM NEW."date")
+        WHERE "id" = NEW."id";
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION extract_week()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS
+$$
+BEGIN
+    IF NEW."week" IS NULL THEN
+        UPDATE "date_time" SET "week" = EXTRACT(WEEK FROM NES."date")
+        WHERE "id" = NEW."id";
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION extract_year()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS
+$$
+BEGIN
+    IF NEW."year" IS NULL THEN
+        UPDATE "date_time" SET "year" = EXTRACT(YEAR FROM NEW."date")
+        WHERE "id" = NEW."id";
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION extract_month()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS
+$$
+BEGIN
+    IF NEW."month" IS NULL THEN
+        UPDATE "date_time" SET "month" = EXTRACT(MONTH FROM NEW."date")
+        WHERE "id" = NEW."id";
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION populate_dates()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+    AS
+$$
+BEGIN
+    PERFORM extract_day();
+    PERFORM extract_dow();
+    PERFORM extract_week();
+    PERFORM extract_year();
+    PERFORM extract_month();
+END;
+$$;
+
+
+
+-- TRIGGERS SECTION --
+CREATE TRIGGER "populate_date_time"
+    AFTER INSERT 
+    ON "date_time"
+    FOR EACH ROW
+    EXECUTE FUNCTION populate_dates();
+
 
 -- CREATE TRIGGER "populate_date_time"
 -- AFTER INSERT ON "date_time"
