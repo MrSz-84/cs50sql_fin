@@ -2,7 +2,8 @@
 -- your database, including the CREATE TABLE, CREATE INDEX, 
 -- CREATE VIEW, etc. statements that compose it
 
--- TYPES SECTION
+-- TYPES SECTION --
+
 -- Create ENUM type for pl dow names.
 CREATE TYPE "pl_dow" AS ENUM('Poniedziałek', 'Wtorek', 'Środa',
     'Czwartek', 'Piątek', 'Sobota', 'Niedziela'
@@ -14,14 +15,21 @@ CREATE TYPE "pl_month" AS ENUM('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj',
     'Listopad', 'Grudzień'
 );
 
--- Create ad_brands ENUM type for brand table.
+-- Create ad_brands ENUM type for brands table.
 CREATE TYPE "ad_brand" AS ENUM('EURO APPLIANCES', 'MEDIA MASTER', 
 'MEDIA SHOP', 'NEWNET');
 
--- Creates ENUM type for reach types.
+-- Creates ENUM type for reach types table.
 CREATE TYPE "reach_type" AS ENUM('krajowe', 'miejskie', 
 'ponadregionalne', 'regionalne');
 
+-- Creates ENUM type for dayparts table
+CREATE TYPE "daypart_type" AS ENUM('do 9', 'od 9 do 16', 'po 16');
+
+-- Creates ENUM type for unified lengths table.
+CREATE TYPE "length_type" AS ENUM(15, 20, 30);
+
+-- TABLES SECTION --
 
 -- Table injecting Polish day of week names into the date_time table.
 CREATE TABLE IF NOT EXISTS "pl_dow_names" (
@@ -84,6 +92,34 @@ CREATE TABLE IF NOT EXISTS "mediums" (
     PRIMARY KEY("id"),
     FOREIGN KEY("broadcaster_id") REFERENCES "broadcasters"("id"),
     FOREIGN KEY("ad_reach_id") REFERENCES "ad_reach"("id")
+);
+
+-- Creates table for dayparts references.
+CREATE TABLE IF NOT EXISTS "dayparts" (
+    "id" SERIAL,
+    "daypart" "daypart_type" NOT NULL UNIQUE,
+    PRIMARY KEY("id")
+);
+
+-- Creates table for unified advertisemens lenght references.
+CREATE TABLE IF NOT EXISTS "unified_lenghts" (
+    "id" SERIAL,
+    "length" "" NOT NULL UNIQUE,
+    PRIMARY KEY("id")
+);
+
+CREATE TABLE IF NOT EXISTS "ad_time_details" (
+    "id" SERIAL,
+    "date" DATE NOT NULL,
+    "ad_slot_hour" VARCHAR(11) NOT NULL,
+    "gg" SMALLINT NOT NULL,
+    "mm" SMALLINT NOT NULL,
+    "length_mod" SMALLINT NOT NULL,
+    "daypart_id" INT NOT NULL,
+    "unified_length_id" INT NOT NULL,
+    PRIMARY KEY("id"),
+    FOREIGN KEY("daypart_id") REFERENCES "dayparts"("id"),
+    FOREIGN KEY("unified_length_id") REFERENCES "unified_lenghts"("id")
 );
 
 -- Create main table with ads emitted through radio estations across country. 
