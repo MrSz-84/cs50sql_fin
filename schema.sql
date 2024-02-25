@@ -157,6 +157,8 @@ CREATE TABLE IF NOT EXISTS "ads_desc" (
 
 
 -- PROCEDURES, FUNCTIONS, TRIGGER FUNCTIONS SECTION --
+
+-- Creates function for extracting day from date column. Used by the populate_day trigger.
 CREATE OR REPLACE FUNCTION extract_day()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -164,12 +166,14 @@ CREATE OR REPLACE FUNCTION extract_day()
 $$
 BEGIN
     IF NEW."day" IS NULL THEN
-        UPDATE "date_time" SET "day" = EXTRACT(DAY FROM NEW."data")
+        UPDATE "date_time" SET "day" = EXTRACT(DAY FROM NEW."date")
         WHERE "id" = NEW."id";
     END IF;
+    RETURN NULL;
 END;
 $$;
 
+-- Creates function for extracting day from date column. Used by the populate_dow trigger.
 CREATE OR REPLACE FUNCTION extract_dow()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -180,9 +184,11 @@ BEGIN
         UPDATE "date_time" SET "day_of_week" = EXTRACT(ISODOW FROM NEW."date")
         WHERE "id" = NEW."id";
     END IF;
+    RETURN NULL;
 END;
 $$;
 
+-- Creates function for extracting day from date column. Used by the populate_week trigger.
 CREATE OR REPLACE FUNCTION extract_week()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -193,9 +199,11 @@ BEGIN
         UPDATE "date_time" SET "week" = EXTRACT(WEEK FROM NES."date")
         WHERE "id" = NEW."id";
     END IF;
+    RETURN NULL;
 END;
 $$;
 
+-- Creates function for extracting day from date column. Used by the populate_year trigger.
 CREATE OR REPLACE FUNCTION extract_year()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -206,9 +214,11 @@ BEGIN
         UPDATE "date_time" SET "year" = EXTRACT(YEAR FROM NEW."date")
         WHERE "id" = NEW."id";
     END IF;
+    RETURN NULL;
 END;
 $$;
 
+-- Creates function for extracting day from date column. Used by the populate_month trigger.
 CREATE OR REPLACE FUNCTION extract_month()
     RETURNS TRIGGER
     LANGUAGE plpgsql
@@ -219,31 +229,47 @@ BEGIN
         UPDATE "date_time" SET "month" = EXTRACT(MONTH FROM NEW."date")
         WHERE "id" = NEW."id";
     END IF;
+    RETURN NULL;
 END;
 $$;
-
-CREATE OR REPLACE FUNCTION populate_dates()
-    RETURNS TRIGGER
-    LANGUAGE plpgsql
-    AS
-$$
-BEGIN
-    PERFORM extract_day();
-    PERFORM extract_dow();
-    PERFORM extract_week();
-    PERFORM extract_year();
-    PERFORM extract_month();
-END;
-$$;
-
 
 
 -- TRIGGERS SECTION --
-CREATE TRIGGER "populate_date_time"
+
+-- Populates day column after date insertion.
+CREATE TRIGGER "populate_day"
     AFTER INSERT 
     ON "date_time"
     FOR EACH ROW
-    EXECUTE FUNCTION populate_dates();
+    EXECUTE FUNCTION extract_day();
+
+-- Populates dow column out after date insertion.
+CREATE TRIGGER "populate_dow"
+    AFTER INSERT 
+    ON "date_time"
+    FOR EACH ROW
+    EXECUTE FUNCTION extract_dow();
+
+-- Populates week column out after date insertion.
+CREATE TRIGGER "populate_week"
+    AFTER INSERT 
+    ON "date_time"
+    FOR EACH ROW
+    EXECUTE FUNCTION extract_week();
+
+-- Populates year column out after date insertion.
+CREATE TRIGGER "populate_year"
+    AFTER INSERT 
+    ON "date_time"
+    FOR EACH ROW
+    EXECUTE FUNCTION extract_year();
+
+-- Populates month column out after date insertion.
+CREATE TRIGGER "populate_month"
+    AFTER INSERT 
+    ON "date_time"
+    FOR EACH ROW
+    EXECUTE FUNCTION extract_month();
 
 
 -- CREATE TRIGGER "populate_date_time"
