@@ -27,7 +27,12 @@ CREATE TYPE "reach_type" AS ENUM('krajowe', 'miejskie',
 CREATE TYPE "daypart_type" AS ENUM('do 9', 'od 9 do 16', 'po 16');
 
 -- Creates ENUM type for unified lengths table.
-CREATE TYPE "length_type" AS ENUM(15, 20, 30);
+CREATE TYPE "length_type" AS ENUM('15', '20', '30');
+
+-- Creates ENUM type for product types table.
+CREATE TYPE "products" AS ENUM('AGD, RTV, ELEKTRONIKA, FOTOGRAFIA, KOMPUTERY',
+'GRUPA', 'OGŁOSZENIA O PRACY');
+
 
 -- TABLES SECTION --
 
@@ -74,7 +79,6 @@ CREATE TABLE IF NOT EXISTS "broadcasters" (
     PRIMARY KEY("id")
 );
 
-
 -- References reach of given radio station for mediums table.
 CREATE TABLE IF NOT EXISTS "ad_reach" (
     "id" SERIAL,
@@ -104,7 +108,7 @@ CREATE TABLE IF NOT EXISTS "dayparts" (
 -- Creates table for unified advertisemens lenght references.
 CREATE TABLE IF NOT EXISTS "unified_lenghts" (
     "id" SERIAL,
-    "length" "" NOT NULL UNIQUE,
+    "length" "length_type" NOT NULL UNIQUE,
     PRIMARY KEY("id")
 );
 
@@ -120,6 +124,13 @@ CREATE TABLE IF NOT EXISTS "ad_time_details" (
     PRIMARY KEY("id"),
     FOREIGN KEY("daypart_id") REFERENCES "dayparts"("id"),
     FOREIGN KEY("unified_length_id") REFERENCES "unified_lenghts"("id")
+);
+
+-- Creates pprodyct type references for ads_desc table.
+CREATE TABLE IF NOT EXISTS "product_types" (
+    "id" SERIAL,
+    "product_type" "products" NOT NULL UNIQUE,
+    PRIMARY KEY("id")
 );
 
 -- Create main table with ads emitted through radio estations across country. 
