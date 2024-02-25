@@ -196,7 +196,7 @@ CREATE OR REPLACE FUNCTION extract_week()
 $$
 BEGIN
     IF NEW."week" IS NULL THEN
-        UPDATE "date_time" SET "week" = EXTRACT(WEEK FROM NES."date")
+        UPDATE "date_time" SET "week" = EXTRACT(WEEK FROM NEW."date")
         WHERE "id" = NEW."id";
     END IF;
     RETURN NULL;
