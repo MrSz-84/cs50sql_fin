@@ -1,1 +1,4 @@
 sample-project/
+data/
+tools/__pycasche__/
+.pyc
