@@ -149,7 +149,9 @@ CREATE TABLE IF NOT EXISTS "ads_desc" (
     "type" VARCHAR(50) NOT NULL DEFAULT 'advertisement',
     PRIMARY KEY("id"),
     FOREIGN KEY("brand_id") REFERENCES "brands"("id"),
-    FOREIGN KEY("medium_id") REFERENCES "mediums"("id")
+    FOREIGN KEY("medium_id") REFERENCES "mediums"("id"),
+    FOREIGN KEY("ad_time_details_id") REFERENCES "ad_time_details"("id"),
+    FOREIGN KEY("product_type_id") REFERENCES "product_types"("id")
 );
 
 -- CREATE TRIGGER "populate_date_time"
