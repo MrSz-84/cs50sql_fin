@@ -63,6 +63,37 @@ for date in dates:
     )
 conn.commit()
 
+# Commits brands into brands table.
+brands = df['brand'].sort_values().unique()
+
+query = sql.SQL('INSERT INTO {table} ({field}) VALUES(%s)')
+
+for brand in brands:
+    cur.execute(
+        query.format(
+            table=sql.Identifier('brands'),
+            field=sql.Identifier('brand')), (brand,)
+    )
+
+conn.commit()
+
+
+# Commits lengths into unified_length table.
+lengths = df['dł_ujednolicona'].sort_values().unique()
+
+query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
+
+for length in lengths:
+    cur.execute(
+        query.format(
+            table=sql.Identifier('unified_lenghts'),
+            field=sql.Identifier('length')), (str(length),)
+    )
+    
+conn.commit()
+
+
+
 
 
 conn.close()
