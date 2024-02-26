@@ -7,12 +7,13 @@ import numpy as np
 
 # Openes connection to the DB
 conn = psycopg2.connect(
-    f'''dbname={tools.conf.DB} 
-        user={tools.conf.USER} 
+    f'''dbname={tools.conf.DB}
+        user={tools.conf.USER}
         host={tools.conf.HOST}
         port={tools.conf.PORT}
     '''
-    )
+)
+
 cur = conn.cursor()
 
 # Reads the dataframe
@@ -47,7 +48,6 @@ for month in months:
             table=sql.Identifier('pl_month_names'),
             field=sql.Identifier('month_name')), (month,)
     )
-
 conn.commit()
 
 # Commits dates into date_time table
@@ -74,7 +74,6 @@ for brand in brands:
             table=sql.Identifier('brands'),
             field=sql.Identifier('brand')), (brand,)
     )
-
 conn.commit()
 
 
@@ -89,10 +88,35 @@ for length in lengths:
             table=sql.Identifier('unified_lenghts'),
             field=sql.Identifier('length')), (str(length),)
     )
-    
 conn.commit()
 
 
+# Commits dayparts into dayparts table.
+dayparts = df['daypart'].unique()
+
+query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
+
+for daypart in dayparts:
+    cur.execute(
+        query.format(
+            table=sql.Identifier('dayparts'),
+            field=sql.Identifier('daypart')), (str(daypart),)
+    )
+conn.commit()
+
+
+# Commits products into product_types table.
+product_types = df['produkt(4)'].sort_values().unique()
+
+query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
+
+for product in product_types:
+    cur.execute(
+        query.format(
+            table=sql.Identifier('product_types'),
+            field=sql.Identifier('product_type')), (str(product),)
+    )
+conn.commit()
 
 
 
