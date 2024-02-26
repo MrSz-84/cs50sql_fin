@@ -5,6 +5,61 @@ import pandas as pd
 import numpy as np
 
 
+# def add_one_field(data, table_name, field_name):
+
+#     query = sql.SQL("INSERT INTO {table} ({field}) VALUES (%s)")
+
+#     for elem in data:
+#         cur.execute(
+#             query.format(
+#                 table=sql.Identifier(f'{table_name}'),
+#                 field=sql.Identifier(f'{field_name}')), (elem,)
+#         )
+#     conn.commit()
+
+# def iter_over_inputs(data_set):
+    
+#     for elem in data_set:
+#         data = elem['data']
+#         table = elem['table']
+#         field = elem['field']
+#         add_one_field(data, table, field)
+        
+
+# Reads the dataframe
+df = pd.read_csv('./data/baza.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8')
+df.sort_values(by='data', axis=0, inplace=True)
+df.reset_index(inplace=True)
+df.drop('index', axis=1, inplace=True)
+
+
+# dow2 = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek',
+#         'Sobota', 'Niedziela']
+# months = [
+#     'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj',
+#     'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień',
+#     'Październik', 'Listopad', 'Grudzień'
+# ]
+# dates = df['data'].unique()
+# brands = df['brand'].sort_values().unique()
+# lengths = df['dł_ujednolicona'].sort_values().unique()
+# dayparts = df['daypart'].unique()
+# product_types = df['produkt(4)'].sort_values().unique()
+# broadcasters = df['wydawca_nadawca'].sort_values().unique()
+# reaches = df['zasięg medium'].unique()
+
+# data_set = [{'data': dow2, 'table': 'pl_dow_names', 'field': 'dow_name'},
+#             {'data': months, 'table': 'pl_month_names', 'field': 'month_name'},
+#             {'data': dates, 'table': 'date_time', 'field': 'date'},
+#             {'data': brands, 'table': 'brands', 'field': 'brand'},
+#             {'data': lengths, 'table': 'unified_lenghts', 'field': 'length'},
+#             {'data': dayparts, 'table': 'dayparts', 'field': 'daypart'},
+#             {'data': product_types, 'table': 'product_types', 'field': 'product_type'},
+#             {'data': broadcasters, 'table': 'broadcasters', 'field': 'broadcaster'},
+#             {'data': reaches, 'table': 'ad_reach', 'field': 'reach'},
+#             ]
+
+
 # Openes connection to the DB
 conn = psycopg2.connect(
     f'''dbname={tools.conf.DB}
@@ -15,12 +70,6 @@ conn = psycopg2.connect(
 )
 
 cur = conn.cursor()
-
-# Reads the dataframe
-df = pd.read_csv('./data/baza.csv', delimiter=';')
-df.sort_values(by='data', axis=0, inplace=True)
-df.reset_index(inplace=True)
-df.drop('index', axis=1, inplace=True)
 
 
 # Commits day of week names into pl_dow_names
@@ -36,9 +85,11 @@ conn.commit()
 
 
 # Commits months into pl_month_names
-months = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj',
-          'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień',
-          'Październik', 'Listopad', 'Grudzień']
+months = [
+    'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj',
+    'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień',
+    'Październik', 'Listopad', 'Grudzień'
+]
 
 query = sql.SQL("INSERT INTO {table} ({field}) VALUES (%s)")
 
@@ -118,6 +169,33 @@ for product in product_types:
     )
 conn.commit()
 
+
+# Commits broadcaster into broadcasters table.
+broadcasters = df['wydawca_nadawca'].sort_values().unique()
+
+query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
+
+for broadcaster in broadcasters:
+    cur.execute(
+        query.format(
+            table=sql.Identifier('broadcasters'),
+            field=sql.Identifier('broadcaster')), (str(broadcaster),)
+    )
+conn.commit()
+
+
+# Commits broadcaster into broadcasters table.
+reaches = df['zasięg medium'].unique()
+
+query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
+
+for reach in reaches:
+    cur.execute(
+        query.format(
+            table=sql.Identifier('ad_reach'),
+            field=sql.Identifier('reach')), (str(reach),)
+    )
+conn.commit()
 
 
 conn.close()
