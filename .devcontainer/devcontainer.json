@@ -91,7 +91,13 @@
 				"ms-python.autopep8",
 				"alexcvzz.vscode-sqlite",
 				"ms-vscode-remote.vscode-remote-extensionpack"
-			]
+			],
+			"settings": {
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.autopep8"},
+				"files.autoSave": "afterDelay",
+				"files.autoSaveDelay": 1000
+			}
 		}
 	},
 	"forwardPorts": [3000, 5000, 5432]
