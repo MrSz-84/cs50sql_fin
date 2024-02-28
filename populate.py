@@ -6,7 +6,7 @@ import numpy as np
 
 
 def add_one_field(data, table_name, field_name):
-    query = sql.SQL("INSERT INTO {table} ({field}) VALUES (%s)")
+    query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
 
     for elem in data:
         cur.execute(
@@ -27,7 +27,7 @@ def iter_over_inputs(data_set):
 def add_3_fields(data_set):
     col = data_set['data'].columns.values.tolist()
     
-    query = sql.SQL("INSERT INTO {table} ({field1}, {field2}, {field3}) VALUES (%s, %s ,%s)")
+    query = sql.SQL('INSERT INTO {table} ({field1}, {field2}, {field3}) VALUES (%s, %s ,%s)')
 
     for _, elem in data_set['data'].iterrows():
         cur.execute(
@@ -73,7 +73,7 @@ def get_id_for_submediums():
     return submediums
 
 
-        
+print('Creating DataFrame.')
 
 # Reads the dataframe
 df = pd.read_csv('./data/baza.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8')
@@ -108,6 +108,7 @@ data_set = [{'data': dow2, 'table': 'pl_dow_names', 'field': 'dow_name'},
             {'data': reaches, 'table': 'ad_reach', 'field': 'reach'},
             ]
 
+print('Oppening connection.')
 # Openes connection to the DB
 conn = psycopg2.connect(
     f'''dbname={tools.conf.DB}
@@ -119,11 +120,16 @@ conn = psycopg2.connect(
 
 cur = conn.cursor()
 
+print('Inserting data to one input tables.')
 iter_over_inputs(data_set)
 
+print('Inserting data to three input table.')
 submediums = get_id_for_submediums()
-data_set2 = [{'data': submediums, 'table': 'mediums', 'fields': ['submedium', 'broadcaster_id', 'ad_reach_id']}]
+data_set2 = {'data': submediums, 'table': 'mediums', 'fields': ['submedium', 'broadcaster_id', 'ad_reach_id']}
 add_3_fields(data_set2)
 
-
+print('Closing connection.')
 conn.close()
+
+
+print('Program has finished.')
