@@ -41,13 +41,41 @@ def add_3_fields(data_set):
         
     conn.commit()
 
+def add_7_fields(data_set):
+    col = data_set['data'].columns.values.tolist()
+    
+    query = sql.SQL(
+        '''
+        INSERT INTO {table} ({field1}, {field2}, {field3}, {field4}, {field5}, {field6}, {field7}) 
+        VALUES (%s, %s ,%s, %s ,%s, %s ,%s)
+        ''')
+
+    for _, elem in data_set['data'].iterrows():
+        cur.execute(
+            query.format(
+                table=sql.Identifier(data_set['table']),
+                field1=sql.Identifier(data_set['fields'][0]),
+                field2=sql.Identifier(data_set['fields'][1]),
+                field3=sql.Identifier(data_set['fields'][2]),
+                field4=sql.Identifier(data_set['fields'][3]),
+                field5=sql.Identifier(data_set['fields'][4]),
+                field6=sql.Identifier(data_set['fields'][5]),
+                field7=sql.Identifier(data_set['fields'][6])), 
+                (elem[col[0]], elem[col[1]], elem[col[2]], 
+                 elem[col[3]], elem[col[4]], elem[col[5]], 
+                 elem[col[6]],
+                )
+        )
+        
+    conn.commit()
+
 def get_id_for_submediums():
     submediums = df[['submedium', 'wydawca_nadawca', 'zasięg medium']].sort_values(by='submedium')
     submediums.drop_duplicates(subset=['submedium'], keep='first', inplace=True, ignore_index=True)
     submediums.index = submediums.index + 1
     
     if sum(submediums.value_counts()) != submediums.index.max():
-        exit('Max index inni niż długość listy.')
+        exit('Max index different than the length of the list.')
     
     query1 = sql.SQL('SELECT {fields} FROM {table}').format(
     fields=sql.SQL(',').join([
@@ -72,6 +100,49 @@ def get_id_for_submediums():
     
     return submediums
 
+
+def get_id_for_ad_time():
+    ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona']]
+    ad_time.index = ad_time.index + 1
+
+    if sum(ad_time.value_counts()) != ad_time.index.max():
+        exit('Max index different than the length of the list.')
+
+    query1 = sql.SQL('SELECT {fields} FROM {table}').format(
+        fields=sql.SQL(',').join([
+            sql.Identifier('length'),
+            sql.Identifier('id')
+            ]),
+        table=sql.Identifier('unified_lenghts'))
+
+    cur.execute(query1)
+    unified_lengths = dict(cur.fetchall())
+
+    query2 = sql.SQL('SELECT {fields} FROM {table}').format(
+        fields=sql.SQL(',').join([
+            sql.Identifier('daypart'),
+            sql.Identifier('id')
+            ]),
+        table=sql.Identifier('dayparts'))
+
+    cur.execute(query2)
+    dayparts = dict(cur.fetchall())
+
+    ad_time['daypart'] = ad_time['daypart'].map(dayparts)
+    ad_time['dł_ujednolicona'] = ad_time['dł_ujednolicona'].map(unified_lengths)
+    
+    return ad_time
+
+def get_colum_names(table_name):
+    query = sql.SQL('SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s').format()
+    cur.execute(query, (table_name,))
+    table_data = cur.fetchall()
+    temp = []
+    for elem in table_data[1:]:
+        temp.append(elem[0])
+    table_data = temp
+    
+    return table_data
 
 print('Creating DataFrame.')
 
@@ -123,10 +194,19 @@ cur = conn.cursor()
 print('Inserting data to one input tables.')
 iter_over_inputs(data_set)
 
-print('Inserting data to three input table.')
+print('Inserting data to the three input table.')
 submediums = get_id_for_submediums()
-data_set2 = {'data': submediums, 'table': 'mediums', 'fields': ['submedium', 'broadcaster_id', 'ad_reach_id']}
+fields = get_colum_names('mediums')
+# ['submedium', 'broadcaster_id', 'ad_reach_id']
+data_set2 = {'data': submediums, 'table': 'mediums', 'fields': fields}
 add_3_fields(data_set2)
+
+print('Inserting data to the seven input table.')
+ad_time = get_id_for_ad_time()
+fields = get_colum_names('ad_time_details')
+data_set3 = {'data': ad_time, 'table': 'ad_time_details', 'fields': fields}
+add_7_fields(data_set3)
+
 
 print('Closing connection.')
 conn.close()
