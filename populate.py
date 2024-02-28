@@ -134,7 +134,13 @@ def get_id_for_ad_time():
     return ad_time
 
 def get_colum_names(table_name):
-    query = sql.SQL('SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s').format()
+    query = sql.SQL(
+    '''
+    SELECT c.column_name 
+    FROM information_schema.columns c 
+    WHERE c.table_name = %s
+    ORDER BY c.ordinal_position;
+    ''').format()
     cur.execute(query, (table_name,))
     table_data = cur.fetchall()
     temp = []
