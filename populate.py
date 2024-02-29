@@ -104,7 +104,7 @@ def get_id_for_submediums():
 
 def get_id_for_ad_time():
     ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'kod_reklamy']]
-    ad_time['kod_reklamy'] = ad_time[['data', "kod_reklamy"]].apply(lambda x: str(x[0]) + ' - ' + str(x[1]), axis=1)
+    ad_time['kod_reklamy'] = df['ad_time_details']
     ad_time.index = ad_time.index + 1
 
     if sum(ad_time.value_counts()) != ad_time.index.max():
@@ -159,6 +159,9 @@ df = pd.read_csv('./data/baza.csv', delimiter=';', thousands=',', dtype={'dł_uj
 df.sort_values(by='data', axis=0, inplace=True)
 df.reset_index(inplace=True)
 df.drop('index', axis=1, inplace=True)
+ind = df.index.values + 1
+# df['ad_time_details'] = df[['data', 'kod_reklamy', 'submedium']].apply(lambda x: f'{x[0]} - {x[1]} - {x[2]} - {ind[x.name]}', axis=1)
+df['ad_time_details'] = df[['data', 'kod_reklamy']].apply(lambda x: f'{x[0]} - {x[1]} - {ind[x.name]}', axis=1)
 
 
 dow2 = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek',
@@ -209,7 +212,7 @@ fields = get_colum_names('mediums')
 data_set2 = {'data': submediums, 'table': 'mediums', 'fields': fields}
 add_3_fields(data_set2)
 
-print('Inserting data to the seven input table.')
+print('Inserting data to the eight input table.')
 ad_time = get_id_for_ad_time()
 fields = get_colum_names('ad_time_details')
 data_set3 = {'data': ad_time, 'table': 'ad_time_details', 'fields': fields}
