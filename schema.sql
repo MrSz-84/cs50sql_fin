@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS "ad_time_details" (
     "length_mod" SMALLINT NOT NULL,
     "daypart_id" SMALLINT NOT NULL,
     "unified_length_id" SMALLINT NOT NULL,
-    "ad_code" VARCHAR(25) NOT NULL,
+    "ad_code" VARCHAR(80) NOT NULL,
     PRIMARY KEY("id"),
     FOREIGN KEY("daypart_id") REFERENCES "dayparts"("id"),
     FOREIGN KEY("unified_length_id") REFERENCES "unified_lenghts"("id")
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS "ads_desc" (
     "ad_code" INTEGER NOT NULL,
     "brand_id" SMALLINT NOT NULL,
     "medium_id" SMALLINT NOT NULL,
-    "ad_time_details_id" SMALLINT NOT NULL UNIQUE,
+    "ad_time_details_id" INTEGER NOT NULL UNIQUE,
     "product_type_id" SMALLINT NOT NULL,
     "cost" INTEGER,
     "num_of_emissions" SMALLINT NOT NULL CHECK("num_of_emissions" > 0),
