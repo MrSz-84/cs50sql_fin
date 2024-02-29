@@ -41,13 +41,13 @@ def add_3_fields(data_set):
         
     conn.commit()
 
-def add_7_fields(data_set):
+def add_8_fields(data_set):
     col = data_set['data'].columns.values.tolist()
     
     query = sql.SQL(
         '''
-        INSERT INTO {table} ({field1}, {field2}, {field3}, {field4}, {field5}, {field6}, {field7}) 
-        VALUES (%s, %s ,%s, %s ,%s, %s ,%s)
+        INSERT INTO {table} ({field1}, {field2}, {field3}, {field4}, {field5}, {field6}, {field7}, {field8}) 
+        VALUES (%s, %s ,%s, %s ,%s, %s ,%s ,%s)
         ''')
 
     for _, elem in data_set['data'].iterrows():
@@ -60,10 +60,11 @@ def add_7_fields(data_set):
                 field4=sql.Identifier(data_set['fields'][3]),
                 field5=sql.Identifier(data_set['fields'][4]),
                 field6=sql.Identifier(data_set['fields'][5]),
-                field7=sql.Identifier(data_set['fields'][6])), 
+                field7=sql.Identifier(data_set['fields'][6]),
+                field8=sql.Identifier(data_set['fields'][7])), 
                 (elem[col[0]], elem[col[1]], elem[col[2]], 
                  elem[col[3]], elem[col[4]], elem[col[5]], 
-                 elem[col[6]],
+                 elem[col[6]], elem[col[7]],
                 )
         )
         
@@ -102,7 +103,8 @@ def get_id_for_submediums():
 
 
 def get_id_for_ad_time():
-    ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona']]
+    ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'kod_reklamy']]
+    ad_time['kod_reklamy'] = ad_time[['data', "kod_reklamy"]].apply(lambda x: str(x[0]) + ' - ' + str(x[1]), axis=1)
     ad_time.index = ad_time.index + 1
 
     if sum(ad_time.value_counts()) != ad_time.index.max():
@@ -128,8 +130,8 @@ def get_id_for_ad_time():
     cur.execute(query2)
     dayparts = dict(cur.fetchall())
 
-    ad_time['daypart'] = ad_time['daypart'].map(dayparts)
-    ad_time['dł_ujednolicona'] = ad_time['dł_ujednolicona'].map(unified_lengths)
+    ad_time.loc[:, 'daypart'] = ad_time['daypart'].map(dayparts)
+    ad_time.loc[:, 'dł_ujednolicona'] = ad_time['dł_ujednolicona'].map(unified_lengths)
     
     return ad_time
 
@@ -211,7 +213,7 @@ print('Inserting data to the seven input table.')
 ad_time = get_id_for_ad_time()
 fields = get_colum_names('ad_time_details')
 data_set3 = {'data': ad_time, 'table': 'ad_time_details', 'fields': fields}
-add_7_fields(data_set3)
+add_8_fields(data_set3)
 
 
 print('Closing connection.')
