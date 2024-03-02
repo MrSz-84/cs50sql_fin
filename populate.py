@@ -169,7 +169,7 @@ def get_id_for_ad_time():
     return ad_time
 
 def get_id_for_ads_desc():
-    ads_desc = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'ad_time_details']]
+    ads_desc = df[['data', 'opis_reklamy', 'kod_reklamy', 'brand', 'submedium', 'ad_time_details', 'produkt(4)', 'koszt', 'l_emisji', 'typ_reklamy']]
     ads_desc.index = ads_desc.index + 1
 
     if sum(ads_desc.value_counts()) != ads_desc.index.max():
