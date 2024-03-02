@@ -272,7 +272,7 @@ CREATE TRIGGER "populate_month"
     FOR EACH ROW
     EXECUTE FUNCTION extract_month();
 
-
+-- View of number of spost per day per brand, per medium
 
 
 

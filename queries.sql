@@ -147,6 +147,9 @@ JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
 WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 8
 GROUP BY "submedium", "brand";
 
+
+
+
 -- Returns the complete data set for selected period of time, 
 -- for frurther processing in Pandas.
 SELECT "date_time"."date" AS "date", "day", "day_of_week" AS "dow", "dow_name", 
