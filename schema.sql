@@ -273,21 +273,6 @@ CREATE TRIGGER "populate_month"
     EXECUTE FUNCTION extract_month();
 
 
--- SELECT date_time.date, day, day_of_week, month, year,
--- ads_desc.ad_code, brand, submedium, broadcaster, reach, 
--- ad_slot_hour, daypart, length, product_type, cost, type, 
--- num_of_emissions
--- FROM ads_desc
--- JOIN date_time ON date_time.date = ads_desc.date
--- JOIN brands ON brands.id = ads_desc.brand_id
--- JOIN mediums ON mediums.id = ads_desc.medium_id
--- JOIN broadcasters ON broadcasters.id = mediums.broadcaster_id
--- JOIN ad_reach ON ad_reach.id = mediums.ad_reach_id
--- JOIN ad_time_details ON ad_time_details.id = ads_desc.ad_time_details_id
--- JOIN dayparts ON dayparts.id = ad_time_details.daypart_id
--- JOIN unified_lengths ON unified_lengths.id = ad_time_details.unified_length_id
--- JOIN product_types ON product_types.id = ads_desc.product_type_id
--- WHERE month = 8 AND brand = 'NEWNET' AND broadcaster = 'PIGLET S.A.' AND submedium = 'FROGGY WEATHER Wrocław' AND day_of_week IN (5, 7);
 
 
 
