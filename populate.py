@@ -3,9 +3,10 @@ import psycopg2
 from psycopg2 import sql
 import pandas as pd
 import numpy as np
+import time
 
 
-def add_one_field(data, table_name, field_name):
+def add_1_field(data, table_name, field_name):
     query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
 
     for elem in data:
@@ -22,7 +23,7 @@ def iter_over_inputs(data_set):
         data = elem['data']
         table = elem['table']
         field = elem['field']
-        add_one_field(data, table, field)
+        add_1_field(data, table, field)
 
 def add_3_fields(data_set):
     col = data_set['data'].columns.values.tolist()
@@ -70,6 +71,38 @@ def add_8_fields(data_set):
         
     conn.commit()
 
+def add_10_fields(data_set):
+    col = data_set['data'].columns.values.tolist()
+    
+    query = sql.SQL(
+        '''
+        INSERT INTO {table} ({field1}, {field2}, {field3}, {field4}, {field5}, {field6}, {field7}, {field8}, {field9}, {field10}) 
+        VALUES (%s, %s ,%s, %s ,%s, %s ,%s ,%s ,%s ,%s)
+        ''')
+
+    for _, elem in data_set['data'].iterrows():
+        cur.execute(
+            query.format(
+                table=sql.Identifier(data_set['table']),
+                field1=sql.Identifier(data_set['fields'][0]),
+                field2=sql.Identifier(data_set['fields'][1]),
+                field3=sql.Identifier(data_set['fields'][2]),
+                field4=sql.Identifier(data_set['fields'][3]),
+                field5=sql.Identifier(data_set['fields'][4]),
+                field6=sql.Identifier(data_set['fields'][5]),
+                field7=sql.Identifier(data_set['fields'][6]),
+                field8=sql.Identifier(data_set['fields'][7]),
+                field9=sql.Identifier(data_set['fields'][8]),
+                field10=sql.Identifier(data_set['fields'][9])), 
+                (elem[col[0]], elem[col[1]], elem[col[2]], 
+                 elem[col[3]], elem[col[4]], elem[col[5]], 
+                 elem[col[6]], elem[col[7]], elem[col[8]], 
+                 elem[col[9]],
+                )
+        )
+        
+    conn.commit()
+
 def get_id_for_submediums():
     submediums = df[['submedium', 'wydawca_nadawca', 'zasięg medium']].sort_values(by='submedium')
     submediums.drop_duplicates(subset=['submedium'], keep='first', inplace=True, ignore_index=True)
@@ -103,8 +136,8 @@ def get_id_for_submediums():
 
 
 def get_id_for_ad_time():
-    ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'kod_reklamy']]
-    ad_time['kod_reklamy'] = df['ad_time_details']
+    ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'ad_time_details']]
+    # ad_time['kod_reklamy'] = df['ad_time_details']
     ad_time.index = ad_time.index + 1
 
     if sum(ad_time.value_counts()) != ad_time.index.max():
@@ -115,7 +148,7 @@ def get_id_for_ad_time():
             sql.Identifier('length'),
             sql.Identifier('id')
             ]),
-        table=sql.Identifier('unified_lenghts'))
+        table=sql.Identifier('unified_lengths'))
 
     cur.execute(query1)
     unified_lengths = dict(cur.fetchall())
@@ -135,6 +168,63 @@ def get_id_for_ad_time():
     
     return ad_time
 
+def get_id_for_ads_desc():
+    ads_desc = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'ad_time_details']]
+    ads_desc.index = ads_desc.index + 1
+
+    if sum(ads_desc.value_counts()) != ads_desc.index.max():
+        exit('Max index different than the length of the list.')
+
+    query1 = sql.SQL('SELECT {fields} FROM {table}').format(
+        fields=sql.SQL(',').join([
+            sql.Identifier('brand'),
+            sql.Identifier('id')
+            ]),
+        table=sql.Identifier('brands'))
+
+    cur.execute(query1)
+    brands_id = dict(cur.fetchall())
+
+
+    query2 = sql.SQL('SELECT {fields} FROM {table}').format(
+        fields=sql.SQL(',').join([
+            sql.Identifier('submedium'),
+            sql.Identifier('id')
+            ]),
+        table=sql.Identifier('mediums'))
+
+    cur.execute(query2)
+    medium_id = dict(cur.fetchall())
+
+
+    query3 = sql.SQL('SELECT {fields} FROM {table}').format(
+        fields=sql.SQL(',').join([
+            sql.Identifier('ad_code'),
+            sql.Identifier('id')
+            ]),
+        table=sql.Identifier('ad_time_details'))
+
+    cur.execute(query3)
+    ad_time_details_id = dict(cur.fetchall())
+
+
+    query4 = sql.SQL('SELECT {fields} FROM {table}').format(
+        fields=sql.SQL(',').join([
+            sql.Identifier('product_type'),
+            sql.Identifier('id')
+            ]),
+        table=sql.Identifier('product_types'))
+
+    cur.execute(query4)
+    product_type_id = dict(cur.fetchall())
+
+    ads_desc['brand'] = ads_desc['brand'].map(brands_id)
+    ads_desc['submedium'] = ads_desc['submedium'].map(medium_id)
+    ads_desc['ad_time_details'] = ads_desc['ad_time_details'].map(ad_time_details_id)
+    ads_desc['produkt(4)'] = ads_desc['produkt(4)'].map(product_type_id)
+    
+    return ads_desc
+
 def get_colum_names(table_name):
     query = sql.SQL(
     '''
@@ -152,18 +242,22 @@ def get_colum_names(table_name):
     
     return table_data
 
+
+m_start = time.time()
 print('Creating DataFrame.')
 
+df_start = time.time()
 # Reads the dataframe
 df = pd.read_csv('./data/baza.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8')
 df.sort_values(by='data', axis=0, inplace=True)
 df.reset_index(inplace=True)
 df.drop('index', axis=1, inplace=True)
 ind = df.index.values + 1
-# df['ad_time_details'] = df[['data', 'kod_reklamy', 'submedium']].apply(lambda x: f'{x[0]} - {x[1]} - {x[2]} - {ind[x.name]}', axis=1)
 df['ad_time_details'] = df[['data', 'kod_reklamy']].apply(lambda x: f'{x[0]} - {x[1]} - {ind[x.name]}', axis=1)
+df_end = time.time()
+df_diff = df_end - df_start
 
-
+# Create datasets for simple tables
 dow2 = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek',
         'Sobota', 'Niedziela']
 months = [
@@ -183,15 +277,15 @@ data_set = [{'data': dow2, 'table': 'pl_dow_names', 'field': 'dow_name'},
             {'data': months, 'table': 'pl_month_names', 'field': 'month_name'},
             {'data': dates, 'table': 'date_time', 'field': 'date'},
             {'data': brands, 'table': 'brands', 'field': 'brand'},
-            {'data': lengths, 'table': 'unified_lenghts', 'field': 'length'},
+            {'data': lengths, 'table': 'unified_lengths', 'field': 'length'},
             {'data': dayparts, 'table': 'dayparts', 'field': 'daypart'},
             {'data': product_types, 'table': 'product_types', 'field': 'product_type'},
             {'data': broadcasters, 'table': 'broadcasters', 'field': 'broadcaster'},
             {'data': reaches, 'table': 'ad_reach', 'field': 'reach'},
             ]
 
-print('Oppening connection.')
 # Openes connection to the DB
+print('Oppening connection.')
 conn = psycopg2.connect(
     f'''dbname={tools.conf.DB}
         user={tools.conf.USER}
@@ -202,25 +296,77 @@ conn = psycopg2.connect(
 
 cur = conn.cursor()
 
+# Inserting data into simple tables
+ones_start = time.time()
 print('Inserting data to one input tables.')
-iter_over_inputs(data_set)
+try:
+    iter_over_inputs(data_set)
+except psycopg2.OperationalError as e:
+    conn.close()
+    print('Failed to input the data.')
+    print(f'Error: {e}')
+ones_end = time.time()
+ones_diff = ones_end - ones_start
 
+# Create and insert data into mediums table
+three_start = time.time()
 print('Inserting data to the three input table.')
 submediums = get_id_for_submediums()
 fields = get_colum_names('mediums')
-# ['submedium', 'broadcaster_id', 'ad_reach_id']
 data_set2 = {'data': submediums, 'table': 'mediums', 'fields': fields}
-add_3_fields(data_set2)
+try:
+    add_3_fields(data_set2)
+except psycopg2.OperationalError as e:
+    conn.close()
+    print('Failed to input the data.')
+    print(f'Error: {e}')
+three_end = time.time()
+three_diff = three_end - three_start
 
+# Create and insert data into ad_time_details table
+eight_start = time.time()
 print('Inserting data to the eight input table.')
 ad_time = get_id_for_ad_time()
 fields = get_colum_names('ad_time_details')
 data_set3 = {'data': ad_time, 'table': 'ad_time_details', 'fields': fields}
-add_8_fields(data_set3)
+try:
+    add_8_fields(data_set3)
+except psycopg2.OperationalError as e:
+    conn.close()
+    print('Failed to input the data.')
+    print(f'Error: {e}')
+eight_end = time.time()
+eight_diff = eight_end - eight_start
+
+# Create and insert data into ad_time_details table
+ten_start = time.time()
+print('Inserting data to the ten input table.')
+ads_desc = get_id_for_ads_desc()
+fields = get_colum_names('ads_desc')
+data_set4 = {'data': ads_desc, 'table': 'ads_desc', 'fields': fields}
+try:
+    add_10_fields(data_set4)
+except psycopg2.OperationalError as e:
+    conn.close()
+    print('Failed to input the data.')
+    print(f'Error: {e}')
+ten_end = time.time()
+ten_diff = ten_end - ten_start
 
 
 print('Closing connection.')
 conn.close()
+m_end =  time.time()
+m_diff = m_end - m_start
 
 
 print('Program has finished.')
+print(f"""
+Total time           : {m_diff}
+DF creation          : {df_diff}
+Ones processing time : {ones_diff}
+Three processing time: {three_diff}
+Eight processing time: {eight_diff}
+Ten processing time  : {ten_diff}
+"""
+)
