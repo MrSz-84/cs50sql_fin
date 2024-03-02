@@ -25,7 +25,7 @@ FROM "ads_desc"
 JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
 JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
 JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław')
+WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
 GROUP BY "brand", "submedium"
 ORDER BY "rc_cost" DESC;
 
@@ -36,7 +36,7 @@ FROM "ads_desc"
 JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
 JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
 JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław')
+WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
 GROUP BY "brand", "submedium"
 ORDER BY "quantity" DESC;
 
@@ -48,7 +48,7 @@ FROM "ads_desc"
 JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
 JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
 JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław')
+WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
 GROUP BY "brand", "submedium"
 ORDER BY "brand", "submedium";
 
@@ -59,7 +59,7 @@ FROM "ads_desc"
 JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
 JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
 JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław')
+WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
 GROUP BY "brand", "submedium"
 ORDER BY "brand", "submedium";
 
@@ -72,7 +72,7 @@ JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
 JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
 JOIN "ad_time_details" ON "ad_time_details"."id" = "ads_desc"."ad_time_details_id"
 JOIN "dayparts" ON "dayparts"."id" = "ad_time_details"."daypart_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław')
+WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
 GROUP BY "brand", "submedium", "daypart"
 ORDER BY "brand", "submedium";
 
@@ -84,7 +84,7 @@ JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
 JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
 JOIN "ad_time_details" ON "ad_time_details"."id" = "ads_desc"."ad_time_details_id"
 JOIN "dayparts" ON "dayparts"."id" = "ad_time_details"."daypart_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław')
+WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
 GROUP BY "brand", "submedium", "daypart"
 ORDER BY "brand", "submedium";
 
@@ -103,7 +103,7 @@ FROM "ads_desc"
 JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
 JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
 JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM') AND "month" = 8
+WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 8
 GROUP BY "submedium", "brand";
 
 -- Return a pivot like table for number of spost per radio station 
@@ -144,7 +144,7 @@ FROM "ads_desc"
 JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
 JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
 JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM') AND "month" = 8
+WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 8
 GROUP BY "submedium", "brand";
 
 -- Returns the complete data set for selected period of time, 
