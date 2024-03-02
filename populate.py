@@ -362,11 +362,11 @@ m_diff = m_end - m_start
 
 print('Program has finished.')
 print(f"""
-Total time           : {m_diff}
-DF creation          : {df_diff}
-Ones processing time : {ones_diff}
-Three processing time: {three_diff}
-Eight processing time: {eight_diff}
-Ten processing time  : {ten_diff}
+Total time           : {m_diff:.2f}
+DF creation          : {df_diff:.2f}
+Ones processing time : {ones_diff:.2f}
+Three processing time: {three_diff:.2f}
+Eight processing time: {eight_diff:.2f}
+Ten processing time  : {ten_diff:.2f}
 """
 )
