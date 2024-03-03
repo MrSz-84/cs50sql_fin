@@ -60,12 +60,12 @@ erDiagram
     PL_DOW_NAME {
     name     pl_dow_names
     serial   id
-    string   name
+    varchar  name
     }
     PL_MONTH_NAME {
     name     pl_dow_names
     serial   id
-    string   name
+    varchar  name
     }
     DATE_TIME{
     name     date_time
