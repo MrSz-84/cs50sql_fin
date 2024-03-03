@@ -18,137 +18,36 @@ WHERE "month" = 8
 GROUP BY "brand"
 ORDER BY "quantity" DESC;
 
--- Returns the sum of ratecard costs of all spots 
--- emitted in selectced month, by each brand per radio station.
-SELECT "brand", "submedium", SUM("cost") AS "rc_cost" 
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
-GROUP BY "brand", "submedium"
-ORDER BY "rc_cost" DESC;
-
 -- Returns the sum all spots 
 -- emitted in selectced month, by each brand per radio station.
-SELECT "brand", "submedium", SUM("num_of_emissions") AS "quantity" 
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
-GROUP BY "brand", "submedium"
-ORDER BY "quantity" DESC;
+SELECT * FROM "em_brand_submedium_2023"
+WHERE "month" = 10 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
 
 
--- Returns the sum of all spots emitted and their percentage
--- in selectced month, by each brand per radio station and daypart.
-SELECT "brand", "submedium", SUM("num_of_emissions") AS "spots quantity" 
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
-GROUP BY "brand", "submedium"
-ORDER BY "brand", "submedium";
-
--- Returns the sum of ratecard costs of all spots emitted and their percentage
--- in selectced month, by each brand per radio station and daypart.
-SELECT "brand", "submedium", SUM("cost") AS "rc_cost" 
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
-GROUP BY "brand", "submedium"
-ORDER BY "brand", "submedium";
-
+-- Returns the sum of rc costs of all spots 
+-- emitted in selectced month, by each brand per radio station.
+SELECT * FROM "rc_brand_submedium_2023"
+WHERE "month" = 10 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
 
 -- Return the number of spot emissions by brand, radio station and daypart
-SELECT "brand", "submedium", "daypart", SUM("num_of_emissions") AS "quantity"
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-JOIN "ad_time_details" ON "ad_time_details"."id" = "ads_desc"."ad_time_details_id"
-JOIN "dayparts" ON "dayparts"."id" = "ad_time_details"."daypart_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
-GROUP BY "brand", "submedium", "daypart"
-ORDER BY "brand", "submedium";
+-- in selectced month, by each brand per radio station and daypart.
+SELECT * FROM "em_daypart_brand_submedium_2023"
+WHERE "month" = 10 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
 
 -- Return the ratecard cost of spot emissions by brand, radio station and daypart
-SELECT "brand", "submedium", "daypart", SUM("cost") AS "rc_cost"
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-JOIN "ad_time_details" ON "ad_time_details"."id" = "ads_desc"."ad_time_details_id"
-JOIN "dayparts" ON "dayparts"."id" = "ad_time_details"."daypart_id"
-WHERE "month" = 8 AND "submedium" IN ('BET' , 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
-GROUP BY "brand", "submedium", "daypart"
-ORDER BY "brand", "submedium";
-
+-- in selectced month, by each brand per radio station and daypart.
+SELECT * FROM "em_daypart_brand_submedium_2023"
+WHERE "month" = 8 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
 
 -- Return a pivot like table for number of spost per radio station 
 -- per brand for each dow.
-SELECT "submedium", "brand",
-    SUM(CASE WHEN "day_of_week" = 1 THEN "num_of_emissions" ELSE 0 END) AS mon,
-    SUM(CASE WHEN "day_of_week" = 2 THEN "num_of_emissions" ELSE 0 END) AS tue,
-    SUM(CASE WHEN "day_of_week" = 3 THEN "num_of_emissions" ELSE 0 END) AS wed,
-    SUM(CASE WHEN "day_of_week" = 4 THEN "num_of_emissions" ELSE 0 END) AS thu,
-    SUM(CASE WHEN "day_of_week" = 5 THEN "num_of_emissions" ELSE 0 END) AS fri,
-    SUM(CASE WHEN "day_of_week" = 6 THEN "num_of_emissions" ELSE 0 END) AS sat,
-    SUM(CASE WHEN "day_of_week" = 7 THEN "num_of_emissions" ELSE 0 END) AS sun
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 8
-GROUP BY "submedium", "brand";
+SELECT * FROM "spots_per_day_2023"
+WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 9;
 
 -- Return a pivot like table for number of spost per radio station 
--- per brand for each dom.
-SELECT "submedium", "brand" AS "brand | august",
-    SUM(CASE WHEN "day" = 1 THEN "num_of_emissions" ELSE 0 END) AS "1",
-    SUM(CASE WHEN "day" = 2 THEN "num_of_emissions" ELSE 0 END) AS "2",
-    SUM(CASE WHEN "day" = 3 THEN "num_of_emissions" ELSE 0 END) AS "3",
-    SUM(CASE WHEN "day" = 4 THEN "num_of_emissions" ELSE 0 END) AS "4",
-    SUM(CASE WHEN "day" = 5 THEN "num_of_emissions" ELSE 0 END) AS "5",
-    SUM(CASE WHEN "day" = 6 THEN "num_of_emissions" ELSE 0 END) AS "6",
-    SUM(CASE WHEN "day" = 7 THEN "num_of_emissions" ELSE 0 END) AS "7",
-    SUM(CASE WHEN "day" = 8 THEN "num_of_emissions" ELSE 0 END) AS "8",
-    SUM(CASE WHEN "day" = 9 THEN "num_of_emissions" ELSE 0 END) AS "9",
-    SUM(CASE WHEN "day" = 10 THEN "num_of_emissions" ELSE 0 END) AS "10",
-    SUM(CASE WHEN "day" = 11 THEN "num_of_emissions" ELSE 0 END) AS "11",
-    SUM(CASE WHEN "day" = 12 THEN "num_of_emissions" ELSE 0 END) AS "12",
-    SUM(CASE WHEN "day" = 13 THEN "num_of_emissions" ELSE 0 END) AS "13",
-    SUM(CASE WHEN "day" = 14 THEN "num_of_emissions" ELSE 0 END) AS "14",
-    SUM(CASE WHEN "day" = 15 THEN "num_of_emissions" ELSE 0 END) AS "15",
-    SUM(CASE WHEN "day" = 16 THEN "num_of_emissions" ELSE 0 END) AS "16",
-    SUM(CASE WHEN "day" = 17 THEN "num_of_emissions" ELSE 0 END) AS "17",
-    SUM(CASE WHEN "day" = 18 THEN "num_of_emissions" ELSE 0 END) AS "18",
-    SUM(CASE WHEN "day" = 19 THEN "num_of_emissions" ELSE 0 END) AS "19",
-    SUM(CASE WHEN "day" = 20 THEN "num_of_emissions" ELSE 0 END) AS "20",
-    SUM(CASE WHEN "day" = 21 THEN "num_of_emissions" ELSE 0 END) AS "21",
-    SUM(CASE WHEN "day" = 22 THEN "num_of_emissions" ELSE 0 END) AS "22",
-    SUM(CASE WHEN "day" = 23 THEN "num_of_emissions" ELSE 0 END) AS "23",
-    SUM(CASE WHEN "day" = 24 THEN "num_of_emissions" ELSE 0 END) AS "24",
-    SUM(CASE WHEN "day" = 25 THEN "num_of_emissions" ELSE 0 END) AS "25",
-    SUM(CASE WHEN "day" = 26 THEN "num_of_emissions" ELSE 0 END) AS "26",
-    SUM(CASE WHEN "day" = 27 THEN "num_of_emissions" ELSE 0 END) AS "27",
-    SUM(CASE WHEN "day" = 28 THEN "num_of_emissions" ELSE 0 END) AS "28",
-    SUM(CASE WHEN "day" = 29 THEN "num_of_emissions" ELSE 0 END) AS "29",
-    SUM(CASE WHEN "day" = 30 THEN "num_of_emissions" ELSE 0 END) AS "30",
-    SUM(CASE WHEN "day" = 31 THEN "num_of_emissions" ELSE 0 END) AS "31"
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 8
-GROUP BY "submedium", "brand";
-
-
-
+-- per brand for each dow.
+SELECT * FROM "spots_per_dow_2023"
+WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 8;
 
 -- Returns the complete data set for selected period of time, 
 -- for frurther processing in Pandas.
