@@ -424,6 +424,11 @@ WHERE "year" = 2023
 GROUP BY "brand", "submedium", "month"
 ORDER BY "quantity" DESC, "brand", "submedium";
 
+-- Indexes
+CREATE INDEX "brand" ON "brands" ("brand");
+CREATE INDEX "month" ON "date_time" ("month")
+CREATE INDEX "year" ON "date_time" ("year")
+CREATE INDEX "submedium" ON "mediums" ("submedium");
 
 
 
