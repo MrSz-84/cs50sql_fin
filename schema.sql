@@ -159,6 +159,8 @@ CREATE TABLE IF NOT EXISTS "ads_desc" (
 
 -- PROCEDURES, FUNCTIONS, TRIGGER FUNCTIONS SECTION --
 
+-- FUNCTIONS SECTION--
+
 -- Creates function for extracting day from date column. Used by the populate_day trigger.
 CREATE OR REPLACE FUNCTION extract_day()
     RETURNS TRIGGER
@@ -272,6 +274,7 @@ CREATE TRIGGER "populate_month"
     FOR EACH ROW
     EXECUTE FUNCTION extract_month();
 
+-- VIEWS SECTION --
 
 -- View for all the relevant data for JOIN statements. 
 -- User can go from there and select what they need.
@@ -294,7 +297,6 @@ JOIN "unified_lengths" ON "unified_lengths"."id" = "ad_time_details"."unified_le
 JOIN "product_types" ON "product_types"."id" = "ads_desc"."product_type_id"
 JOIN "pl_dow_names" ON "pl_dow_names"."id" = "date_time"."day_of_week"
 JOIN "pl_month_names" ON "pl_month_names"."id" = "date_time"."month";
-
 
 -- View of number of spost per day per brand, per medium. For filtering use for instance:
 -- SELECT * FROM spots_per_day_2023
@@ -339,7 +341,6 @@ JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
 WHERE "year" = 2023
 GROUP BY "submedium", "brand", "month"
 ORDER BY "submedium", "brand", "month";
-
 
 -- A view for spots per dow for band and submedium returning pivot like table. 
 -- Filter by using:
@@ -424,7 +425,7 @@ WHERE "year" = 2023
 GROUP BY "brand", "submedium", "month"
 ORDER BY "quantity" DESC, "brand", "submedium";
 
--- Indexes
+-- INDEX SECTION -- 
 CREATE INDEX "brand" ON "brands" ("brand");
 CREATE INDEX "month" ON "date_time" ("month")
 CREATE INDEX "year" ON "date_time" ("year")
