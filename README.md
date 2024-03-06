@@ -5,6 +5,8 @@ By Marcin Borowski
 
 Video overview: <URL HERE>
 
+<br>
+
 ## Scope
 
 This database was designed for two purposes:
@@ -19,10 +21,15 @@ A place to store data about radio advertisements emitted by company I work for, 
 * Contents of those ads also *includes* other brands and manufacturers of commodities.
 * Out of scope are elements other than advertisements, and other retail branches in which company I work for doesn't conduct business.
 
+
+<br>
+
 > **NOTE**
 >
 > Code used in creation of functions and triggers is written using PostgreSQL syntax. Please keep this in mind. 
 > It also can be fairly easily transformed into pure SQL.
+
+<br>
 
 ## Functional Requirements
 
@@ -66,6 +73,9 @@ The `ads_desc` table contains the data about the advertisement emission, their c
     > 
     > ADVERTISEMENT != EMISSION
     > The same advertisement can be emitted several times.
+
+<br>
+
 - `brand_id` which contains unique number that can be bound with brand instructing the emission (ad owner) table. Type used `SMALLINT`, and `FOREIGN KEY` restrictions were added.
 - `medium_id` which contains unique number that can be bound with the owner od radio group or single radio station gathered in another table. Type used `SMALLINT`, and `FOREIGN KEY` restrictions were added.
 - `ad_time_details_id` which contains unique number that can be bound with specific emission details in corresponding table. Those numbers **HAVE TO BE UNIQUE**, otherwise identification of single emissions won't be possible. Thus `UNIQUE` constraint was applied, and `FOREIGN KEY` as well. Type used for this column is `SMALLINT`.
@@ -106,9 +116,16 @@ The `date_time` table contains information of each day at which emission of an a
 - `year` is of `SMALLINT` type represented as 4 digits. `CHECK` constraint accepts values between 1900 and 9999. The database takes care of data insertion to this column as well.
 - `month` is represented as a whole number between 1 and 12. Thus the usage of `SMALLINT` type and `CHECK` constraint. This is also the `FOREIGN KEY` for `pl_month_names` table, and should be created automatically by the database itself.
 
+<br>
+
+
+
 > ***WARNING***
 >
 > Please note, that at this stage of development the DB does not check if any individual inserted values would indicate proper date according to the Gregorian calendar. If the user chooses to add data manually, they remain accountable of data validity. 
+
+
+<br>
 
 
 #### <u>pl_dow_names</u>
@@ -316,6 +333,7 @@ Breaking down the ER diagram into words:
 
 * Also each emission of an ad, can by of only one product type. Yet one product type can be linked to more than one ad, thus one to many relationship.
 
+<br>
 
 ## Optimizations
 
@@ -327,6 +345,7 @@ By design data stored in the database are going to be accessed via Pandas librar
 
 As for indexes, the most filtration is going to be done by brand, month, year and submedium. Therefore this should speed up searching and scanning.
 
+<br>
 
 ## Limitations
 
