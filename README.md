@@ -104,9 +104,13 @@ The `ad_time_details` table, contains information about every ad emission hold  
 
 The `date_time` table contains information of each day at which emission of an ad took place. User should insert data only onto `date` column, and the database should complete the remaining columns.
 
+<br>
+
 >**NOTE**
 >
 >User can input data to other columns than `data` if it won't violate column constraints. Please look at the documentation below to familiarize yourself with what and where to input.
+
+<br>
 
 - `id` which is the unique identification number of each date, and by so has `PRIMARY KEY` constraint applied.
 - `date` is inputted as ISO 8601 format (_YYYY-MM-DD_), and is formatted as `DATE` type. Inputted data also has to be unique, and not null, thus such constraints were used. 
