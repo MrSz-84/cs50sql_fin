@@ -69,6 +69,7 @@ The `ads_desc` table contains the data about the advertisement emission, their c
 - `date` which states when given emission took place. Date is in ISO 8601 format and thus `DATE` available in PosgreSQL was used. In addition this is the column which relates to `date_time` table, thus `FOREIGN KEY` constraints were applied.
 - `ad_description` which a simple transcript of the ad contents, thus `VARCHAR(200)` was used.
 - `ad_code` which should be a unique numeric value of given advertisement. The type `INTEGER` was used here, because the schema of constructing this numeric value isn't known at this time. 
+
     > **NOTE!**
     > 
     > ADVERTISEMENT != EMISSION
