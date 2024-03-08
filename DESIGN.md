@@ -75,7 +75,6 @@ The `ads_desc` table contains the data about the advertisement emission, their c
     > ADVERTISEMENT != EMISSION
     > The same advertisement can be emitted several times.
 
-<br>
 
 - `brand_id` which contains unique number that can be bound with brand instructing the emission (ad owner) table. Type used `SMALLINT`, and `FOREIGN KEY` restrictions were added.
 - `medium_id` which contains unique number that can be bound with the owner od radio group or single radio station gathered in another table. Type used `SMALLINT`, and `FOREIGN KEY` restrictions were added.
@@ -123,15 +122,11 @@ The `date_time` table contains information of each day at which emission of an a
 
 <br>
 
-
-
 > ***WARNING***
 >
 > Please note, that at this stage of development the DB does not check if any individual inserted values would indicate proper date according to the Gregorian calendar. If the user chooses to add data manually, they remain accountable of data validity. 
 
-
 <br>
-
 
 #### <u>pl_dow_names</u>
 
