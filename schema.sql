@@ -23,7 +23,7 @@ CREATE TYPE "reach_type" AS ENUM('krajowe', 'miejskie',
 CREATE TYPE "daypart_type" AS ENUM('do 9', 'od 9 do 16', 'po 16');
 
 -- Creates ENUM type for unified lengths table.
-CREATE TYPE "length_type" AS ENUM('15', '20', '30');
+CREATE TYPE "length_type" AS ENUM('15', '20', '30', '45', '60');
 
 -- Creates ENUM type for product types table.
 CREATE TYPE "products" AS ENUM('AGD, RTV, ELEKTRONIKA, FOTOGRAFIA, KOMPUTERY',
