@@ -16,6 +16,16 @@ def add_1_field(data, table_name, field_name):
                 field=sql.Identifier(f'{field_name}')), (elem,)
         )
     conn.commit()
+
+
+# def iter_over_inputs(data_set):
+    
+#     for elem in data_set:
+#         data = elem['data']
+#         table = elem['table']
+#         field = elem['field']
+#         add_1_field(data, table, field)
+
     
 def iter_over_inputs(data_set):
     
@@ -23,7 +33,49 @@ def iter_over_inputs(data_set):
         data = elem['data']
         table = elem['table']
         field = elem['field']
-        add_1_field(data, table, field)
+        new_data, data = check_for_data_1_field(data, table, field)
+        if new_data:
+            add_1_field(data, table, field)
+
+
+def check_for_data_1_field(data_, table_, field_):
+    query = sql.SQL('SELECT {field} FROM {table}')
+    cur.execute(
+        query.format(
+            table=sql.Identifier(table_),
+            field=sql.Identifier(field_))
+    )
+    
+    in_db = pd.DataFrame([elem[0] for elem in cur.fetchall()])
+    in_db.rename(columns={0: field_}, inplace=True)
+    
+    if len(in_db) == 0:
+        return (True, data_)
+    else:
+        if field_ == 'date':
+            in_db['date'] = pd.to_datetime(in_db['date'])
+            in_db = list(in_db['date'])
+        else: 
+            in_db = list(in_db[field_])
+        
+        if len(in_db) != 0 and table_ in avoid_adding:
+            print(f'>>> Not adding to {table_}. No new data found.')
+            return (False, None)
+        in_df = pd.DataFrame(data_)
+        in_df = in_df.rename(columns={0: field_})
+        if field_ == 'date':
+            in_df['date'] = pd.to_datetime(in_df['date'])
+        
+        # we check if df contains new data in comparison to DB
+        new_data = in_df[~in_df.isin(in_db)].dropna()
+        new_data = new_data[field_]
+        new_data = list(new_data)
+        
+        if len(new_data) != 0:
+            print(f'>>> Adding to {table_}. New data found.')
+            return (True, new_data)
+        else:
+            return (False, None)
 
 def add_3_fields(data_set):
     col = data_set['data'].columns.values.tolist()
@@ -248,7 +300,7 @@ print('Creating DataFrame.')
 
 df_start = time.time()
 # Reads the dataframe
-df = pd.read_csv('./data/baza.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8')
+df = pd.read_csv('./data/baza.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8', parse_dates=['data'])
 df.sort_values(by='data', axis=0, inplace=True)
 df.reset_index(inplace=True)
 df.drop('index', axis=1, inplace=True)
@@ -256,6 +308,8 @@ ind = df.index.values + 1
 df['ad_time_details'] = df[['data', 'kod_reklamy']].apply(lambda x: f'{x[0]} - {x[1]} - {ind[x.name]}', axis=1)
 df_end = time.time()
 df_diff = df_end - df_start
+
+# print(df.head(50))
 
 # Create datasets for simple tables
 dow2 = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek',
@@ -283,6 +337,19 @@ data_set = [{'data': dow2, 'table': 'pl_dow_names', 'field': 'dow_name'},
             {'data': broadcasters, 'table': 'broadcasters', 'field': 'broadcaster'},
             {'data': reaches, 'table': 'ad_reach', 'field': 'reach'},
             ]
+
+avoid_adding = ['pl_dow_names', 'pl_month_names', 'dayparts', 'ad_reach']
+# tab_df_pairs = {'pl_dow_names': 'data',
+#                   'pl_month_names': 'data',
+#                   'date_time': 'data',
+#                   'brands': 'brand',
+#                   'unified_lengths': 'dł_ujednolicona',
+#                   'dayparts': 'daypart',
+#                   'product_types': 'produkt(4)',
+#                   'broadcasters': 'wydawca_nadawca',
+#                   'ad_reach': 'zasięg medium',
+#                   'mediums': '',
+#                   }
 
 # Openes connection to the DB
 print('Oppening connection.')
