@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 
-def add_1_field(data, table_name, field_name):
+def add_1_field(data:list, table_name:str, field_name: str)-> None:
     query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
 
     for elem in data:
@@ -17,17 +17,7 @@ def add_1_field(data, table_name, field_name):
         )
     conn.commit()
 
-
-# def iter_over_inputs(data_set):
-    
-#     for elem in data_set:
-#         data = elem['data']
-#         table = elem['table']
-#         field = elem['field']
-#         add_1_field(data, table, field)
-
-    
-def iter_over_inputs(data_set):
+def iter_over_inputs(data_set:dict[list[str],str,str])-> None:
     
     for elem in data_set:
         data = elem['data']
@@ -38,7 +28,7 @@ def iter_over_inputs(data_set):
             add_1_field(data, table, field)
 
 
-def check_for_data_1_field(data_, table_, field_):
+def check_for_data_1_field(data_:list[str], table_:str, field_:str)-> tuple[bool,list[str]]:
     query = sql.SQL('SELECT {field} FROM {table}')
     cur.execute(
         query.format(
@@ -60,7 +50,7 @@ def check_for_data_1_field(data_, table_, field_):
         
         if len(in_db) != 0 and table_ in avoid_adding:
             print(f'>>> Not adding to {table_}. No new data found.')
-            return (False, None)
+            return (False, list(''))
         in_df = pd.DataFrame(data_)
         in_df = in_df.rename(columns={0: field_})
         if field_ == 'date':
@@ -75,9 +65,9 @@ def check_for_data_1_field(data_, table_, field_):
             print(f'>>> Adding to {table_}. New data found.')
             return (True, new_data)
         else:
-            return (False, None)
+            return (False, list(''))
 
-def add_3_fields(data_set):
+def add_3_fields(data_set:dict[pd.DataFrame,str,list])-> None:
     col = data_set['data'].columns.values.tolist()
     
     query = sql.SQL('INSERT INTO {table} ({field1}, {field2}, {field3}) VALUES (%s, %s ,%s)')
@@ -93,8 +83,35 @@ def add_3_fields(data_set):
         )
         
     conn.commit()
+    
+def check_for_data_3_fields(fields:list[str], table_: str, submediums: pd.DataFrame)-> tuple[bool,pd.DataFrame]:
+    query = sql.SQL('SELECT id, {field1}, {field2}, {field3} FROM {table}')
+    cur.execute(
+        query.format(
+            table=sql.Identifier(table_),
+            field1=sql.Identifier(fields[0]),
+            field2=sql.Identifier(fields[1]),
+            field3=sql.Identifier(fields[2]))
+    )
+    
+    in_db = pd.DataFrame(cur.fetchall())
+    in_db.rename(columns={0: 'id',1: fields[0], 2: fields[1], 3: fields[2]}, inplace=True)
+    
+    if len(in_db) == 0:
+        return submediums
+    else:
+        in_db = list(in_db[fields[0]])
+        in_df = submediums.copy()
+        # we check if df contains new data in comparison to DB
+        new_data = in_df[~in_df.isin(in_db)].dropna()
+        
+        if len(new_data) != 0 :
+            print(f'>>> Adding to {table_}. New data found.')
+            return (True, new_data)
+        print(f'>>> Not adding to {table_}. No new data found.')
+        return (False, submediums)
 
-def add_8_fields(data_set):
+def add_8_fields(data_set:dict[pd.DataFrame,str,list[str]])-> None:
     col = data_set['data'].columns.values.tolist()
     
     query = sql.SQL(
@@ -123,7 +140,7 @@ def add_8_fields(data_set):
         
     conn.commit()
 
-def add_10_fields(data_set):
+def add_10_fields(data_set:dict[pd.DataFrame,str,list[str]])-> None:
     col = data_set['data'].columns.values.tolist()
     
     query = sql.SQL(
@@ -155,12 +172,11 @@ def add_10_fields(data_set):
         
     conn.commit()
 
-def get_id_for_submediums():
+def get_id_for_submediums(fields:list[str], table:str)-> pd.DataFrame:
     submediums = df[['submedium', 'wydawca_nadawca', 'zasięg medium']].sort_values(by='submedium')
     submediums.drop_duplicates(subset=['submedium'], keep='first', inplace=True, ignore_index=True)
-    submediums.index = submediums.index + 1
     
-    if sum(submediums.value_counts()) != submediums.index.max():
+    if sum(submediums.value_counts()) != submediums.index.max() + 1:
         exit('Max index different than the length of the list.')
     
     query1 = sql.SQL('SELECT {fields} FROM {table}').format(
@@ -184,12 +200,13 @@ def get_id_for_submediums():
     submediums['wydawca_nadawca'] = submediums['wydawca_nadawca'].map(broadcasters)
     submediums['zasięg medium'] = submediums['zasięg medium'].map(ad_reach)
     
-    return submediums
+    trigger, submediums = check_for_data_3_fields(fields, table, submediums)
+    
+    return (trigger, submediums)
 
 
-def get_id_for_ad_time():
+def get_id_for_ad_time()-> pd.DataFrame:
     ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'ad_time_details']]
-    # ad_time['kod_reklamy'] = df['ad_time_details']
     ad_time.index = ad_time.index + 1
 
     if sum(ad_time.value_counts()) != ad_time.index.max():
@@ -220,7 +237,7 @@ def get_id_for_ad_time():
     
     return ad_time
 
-def get_id_for_ads_desc():
+def get_id_for_ads_desc()-> pd.DataFrame:
     ads_desc = df[['data', 'opis_reklamy', 'kod_reklamy', 'brand', 'submedium', 'ad_time_details', 'produkt(4)', 'koszt', 'l_emisji', 'typ_reklamy']]
     ads_desc.index = ads_desc.index + 1
 
@@ -277,7 +294,7 @@ def get_id_for_ads_desc():
     
     return ads_desc
 
-def get_colum_names(table_name):
+def get_colum_names(table_name:str)->list[str]:
     query = sql.SQL(
     '''
     SELECT c.column_name 
@@ -339,17 +356,6 @@ data_set = [{'data': dow2, 'table': 'pl_dow_names', 'field': 'dow_name'},
             ]
 
 avoid_adding = ['pl_dow_names', 'pl_month_names', 'dayparts', 'ad_reach']
-# tab_df_pairs = {'pl_dow_names': 'data',
-#                   'pl_month_names': 'data',
-#                   'date_time': 'data',
-#                   'brands': 'brand',
-#                   'unified_lengths': 'dł_ujednolicona',
-#                   'dayparts': 'daypart',
-#                   'product_types': 'produkt(4)',
-#                   'broadcasters': 'wydawca_nadawca',
-#                   'ad_reach': 'zasięg medium',
-#                   'mediums': '',
-#                   }
 
 # Openes connection to the DB
 print('Oppening connection.')
@@ -378,15 +384,17 @@ ones_diff = ones_end - ones_start
 # Create and insert data into mediums table
 three_start = time.time()
 print('Inserting data to the three input table.')
-submediums = get_id_for_submediums()
+# TODO change next 2 lines after tests have ended.
 fields = get_colum_names('mediums')
+trigger, submediums = get_id_for_submediums(fields, 'mediums')
 data_set2 = {'data': submediums, 'table': 'mediums', 'fields': fields}
-try:
-    add_3_fields(data_set2)
-except psycopg2.OperationalError as e:
-    conn.close()
-    print('Failed to input the data.')
-    print(f'Error: {e}')
+if trigger:
+    try:
+        add_3_fields(data_set2)
+    except psycopg2.OperationalError as e:
+        conn.close()
+        print('Failed to input the data.')
+        print(f'Error: {e}')
 three_end = time.time()
 three_diff = three_end - three_start
 
