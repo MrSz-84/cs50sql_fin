@@ -284,9 +284,6 @@ def get_id_for_ads_desc()-> pd.DataFrame:
     cur.execute(query4)
     product_type_id = dict(cur.fetchall())
 
-    # TODO change below code, to the same selection way as below examples:
-    # ad_time.loc[:, 'daypart'] = ad_time['daypart'].map(dayparts)
-    # ad_time.loc[:, 'dł_ujednolicona'] = ad_time['dł_ujednolicona'].map(unified_lengths)
     ads_desc.loc[:, 'brand'] = ads_desc['brand'].map(brands_id)
     ads_desc.loc[:, 'submedium'] = ads_desc['submedium'].map(medium_id)
     ads_desc.loc[:, 'ad_time_details'] = ads_desc['ad_time_details'].map(ad_time_details_id)
