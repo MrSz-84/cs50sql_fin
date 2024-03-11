@@ -98,7 +98,7 @@ def check_for_data_3_fields(fields:list[str], table_name: str, submediums: pd.Da
     in_db.rename(columns={0: 'id',1: fields[0], 2: fields[1], 3: fields[2]}, inplace=True)
     
     if len(in_db) == 0:
-        return submediums
+        return (True, submediums)
     else:
         in_db = list(in_db[fields[0]])
         in_df = submediums.copy()
@@ -316,8 +316,10 @@ def get_index_val(table_name: str)-> int:
     query = sql.SQL('SELECT MAX(id) FROM {table};')
     cur.execute(query.format(table=sql.Identifier(table_name)))
     ind = cur.fetchone()
-    
-    return ind[0] + 1
+    if ind[0] == None:
+        return 1
+    else:
+        return ind[0] + 1
 
 
 m_start = time.time()
