@@ -311,22 +311,39 @@ def get_colum_names(table_name:str)->list[str]:
     
     return table_data
 
+def get_index_val(table_: str)-> int:
+    
+    query = sql.SQL('SELECT MAX(id) FROM {table};')
+    cur.execute(query.format(table=sql.Identifier(table_)))
+    ind = cur.fetchone()
+    
+    return ind[0] + 1
+
 
 m_start = time.time()
-print('Creating DataFrame.')
+# Openes connection to the DB
+print('Oppening connection.')
+conn = psycopg2.connect(
+    f'''dbname={tools.conf.DB}
+        user={tools.conf.USER}
+        host={tools.conf.HOST}
+        port={tools.conf.PORT}
+    '''
+)
 
+cur = conn.cursor()
+
+print('Creating DataFrame.')
 df_start = time.time()
 # Reads the dataframe
 df = pd.read_csv('./data/baza.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8', parse_dates=['data'])
 df.sort_values(by='data', axis=0, inplace=True)
 df.reset_index(inplace=True)
 df.drop('index', axis=1, inplace=True)
-ind = df.index.values + 1
+ind = df.index.values + get_index_val('ads_desc')
 df['ad_time_details'] = df[['data', 'kod_reklamy']].apply(lambda x: f'{x[0]} - {x[1]} - {ind[x.name]}', axis=1)
 df_end = time.time()
 df_diff = df_end - df_start
-
-# print(df.head(50))
 
 # Create datasets for simple tables
 dow2 = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek',
@@ -357,17 +374,6 @@ data_set = [{'data': dow2, 'table': 'pl_dow_names', 'field': 'dow_name'},
 
 avoid_adding = ['pl_dow_names', 'pl_month_names', 'dayparts', 'ad_reach']
 
-# Openes connection to the DB
-print('Oppening connection.')
-conn = psycopg2.connect(
-    f'''dbname={tools.conf.DB}
-        user={tools.conf.USER}
-        host={tools.conf.HOST}
-        port={tools.conf.PORT}
-    '''
-)
-
-cur = conn.cursor()
 
 # Inserting data into simple tables
 ones_start = time.time()
