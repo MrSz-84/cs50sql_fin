@@ -1,6 +1,6 @@
 import tools.conf
-import psycopg2
-from psycopg2 import sql
+import psycopg
+from psycopg import sql
 import pandas as pd
 import numpy as np
 import time
@@ -325,7 +325,7 @@ def get_index_val(table_name: str)-> int:
 m_start = time.time()
 # Openes connection to the DB
 print('Oppening connection.')
-conn = psycopg2.connect(
+conn = psycopg.connect(
     f'''dbname={tools.conf.DB}
         user={tools.conf.USER}
         host={tools.conf.HOST}
@@ -382,7 +382,7 @@ ones_start = time.time()
 print('Inserting data to one input tables.')
 try:
     iter_over_inputs(data_set)
-except psycopg2.OperationalError as e:
+except psycopg.OperationalError as e:
     conn.close()
     print('Failed to input the data.')
     print(f'Error: {e}')
@@ -398,7 +398,7 @@ data_set2 = {'data': submediums, 'table': 'mediums', 'fields': fields}
 if trigger:
     try:
         add_3_fields(data_set2)
-    except psycopg2.OperationalError as e:
+    except psycopg.OperationalError as e:
         conn.close()
         print('Failed to input the data.')
         print(f'Error: {e}')
@@ -415,7 +415,7 @@ data_set3 = {'data': ad_time, 'table': 'ad_time_details', 'fields': fields}
 # TODO switch for no addition of data if requrements not met.
 try:
     add_8_fields(data_set3)
-except psycopg2.OperationalError as e:
+except psycopg.OperationalError as e:
     conn.close()
     print('Failed to input the data.')
     print(f'Error: {e}')
@@ -432,7 +432,7 @@ data_set4 = {'data': ads_desc, 'table': 'ads_desc', 'fields': fields}
 # TODO switch for no addition of data if requrements not met.
 try:
     add_10_fields(data_set4)
-except psycopg2.OperationalError as e:
+except psycopg.OperationalError as e:
     conn.close()
     print('Failed to input the data.')
     print(f'Error: {e}')
