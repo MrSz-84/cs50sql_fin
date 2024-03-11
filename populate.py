@@ -343,7 +343,7 @@ df.sort_values(by='data', axis=0, inplace=True)
 df.reset_index(inplace=True)
 df.drop('index', axis=1, inplace=True)
 ind = df.index.values + get_index_val('ads_desc')
-df['ad_time_details'] = df[['data', 'kod_reklamy']].apply(lambda x: f'{x[0]} - {x[1]} - {ind[x.name]}', axis=1)
+df['ad_time_details'] = df[['data', 'kod_reklamy']].apply(lambda x: f'{x["data"]} - {x["kod_reklamy"]} - {ind[x.name]}', axis=1)
 df_end = time.time()
 df_diff = df_end - df_start
 
