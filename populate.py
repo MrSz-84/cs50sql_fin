@@ -28,41 +28,41 @@ def iter_over_inputs(data_set:dict[list[str],str,str])-> None:
             add_1_field(data, table, field)
 
 
-def check_for_data_1_field(data_:list[str], table_:str, field_:str)-> tuple[bool,list[str]]:
+def check_for_data_1_field(data_:list[str], table_name:str, field_name:str)-> tuple[bool,list[str]]:
     query = sql.SQL('SELECT {field} FROM {table}')
     cur.execute(
         query.format(
-            table=sql.Identifier(table_),
-            field=sql.Identifier(field_))
+            table=sql.Identifier(table_name),
+            field=sql.Identifier(field_name))
     )
     
     in_db = pd.DataFrame([elem[0] for elem in cur.fetchall()])
-    in_db.rename(columns={0: field_}, inplace=True)
+    in_db.rename(columns={0: field_name}, inplace=True)
     
     if len(in_db) == 0:
         return (True, data_)
     else:
-        if field_ == 'date':
+        if field_name == 'date':
             in_db['date'] = pd.to_datetime(in_db['date'])
             in_db = list(in_db['date'])
         else: 
-            in_db = list(in_db[field_])
+            in_db = list(in_db[field_name])
         
-        if len(in_db) != 0 and table_ in avoid_adding:
-            print(f'>>> Not adding to {table_}. No new data found.')
+        if len(in_db) != 0 and table_name in avoid_adding:
+            print(f'>>> Not adding to {table_name}. No new data found.')
             return (False, list(''))
         in_df = pd.DataFrame(data_)
-        in_df = in_df.rename(columns={0: field_})
-        if field_ == 'date':
+        in_df = in_df.rename(columns={0: field_name})
+        if field_name == 'date':
             in_df['date'] = pd.to_datetime(in_df['date'])
         
         # we check if df contains new data in comparison to DB
         new_data = in_df[~in_df.isin(in_db)].dropna()
-        new_data = new_data[field_]
+        new_data = new_data[field_name]
         new_data = list(new_data)
         
         if len(new_data) != 0:
-            print(f'>>> Adding to {table_}. New data found.')
+            print(f'>>> Adding to {table_name}. New data found.')
             return (True, new_data)
         else:
             return (False, list(''))
@@ -84,11 +84,11 @@ def add_3_fields(data_set:dict[pd.DataFrame,str,list])-> None:
         
     conn.commit()
     
-def check_for_data_3_fields(fields:list[str], table_: str, submediums: pd.DataFrame)-> tuple[bool,pd.DataFrame]:
+def check_for_data_3_fields(fields:list[str], table_name: str, submediums: pd.DataFrame)-> tuple[bool,pd.DataFrame]:
     query = sql.SQL('SELECT id, {field1}, {field2}, {field3} FROM {table}')
     cur.execute(
         query.format(
-            table=sql.Identifier(table_),
+            table=sql.Identifier(table_name),
             field1=sql.Identifier(fields[0]),
             field2=sql.Identifier(fields[1]),
             field3=sql.Identifier(fields[2]))
@@ -106,9 +106,9 @@ def check_for_data_3_fields(fields:list[str], table_: str, submediums: pd.DataFr
         new_data = in_df[~in_df.isin(in_db)].dropna()
         
         if len(new_data) != 0 :
-            print(f'>>> Adding to {table_}. New data found.')
+            print(f'>>> Adding to {table_name}. New data found.')
             return (True, new_data)
-        print(f'>>> Not adding to {table_}. No new data found.')
+        print(f'>>> Not adding to {table_name}. No new data found.')
         return (False, submediums)
 
 def add_8_fields(data_set:dict[pd.DataFrame,str,list[str]])-> None:
@@ -207,10 +207,7 @@ def get_id_for_submediums(fields:list[str], table:str)-> pd.DataFrame:
 
 def get_id_for_ad_time()-> pd.DataFrame:
     ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'ad_time_details']]
-    ad_time.index = ad_time.index + 1
-
-    if sum(ad_time.value_counts()) != ad_time.index.max():
-        exit('Max index different than the length of the list.')
+    ad_time.index = ad_time.index + get_index_val('ad_time_details')
 
     query1 = sql.SQL('SELECT {fields} FROM {table}').format(
         fields=sql.SQL(',').join([
@@ -287,10 +284,13 @@ def get_id_for_ads_desc()-> pd.DataFrame:
     cur.execute(query4)
     product_type_id = dict(cur.fetchall())
 
-    ads_desc['brand'] = ads_desc['brand'].map(brands_id)
-    ads_desc['submedium'] = ads_desc['submedium'].map(medium_id)
-    ads_desc['ad_time_details'] = ads_desc['ad_time_details'].map(ad_time_details_id)
-    ads_desc['produkt(4)'] = ads_desc['produkt(4)'].map(product_type_id)
+    # TODO change below code, to the same selection way as below examples:
+    # ad_time.loc[:, 'daypart'] = ad_time['daypart'].map(dayparts)
+    # ad_time.loc[:, 'dł_ujednolicona'] = ad_time['dł_ujednolicona'].map(unified_lengths)
+    ads_desc.loc[:, 'brand'] = ads_desc['brand'].map(brands_id)
+    ads_desc.loc[:, 'submedium'] = ads_desc['submedium'].map(medium_id)
+    ads_desc.loc[:, 'ad_time_details'] = ads_desc['ad_time_details'].map(ad_time_details_id)
+    ads_desc.loc[:, 'produkt(4)'] = ads_desc['produkt(4)'].map(product_type_id)
     
     return ads_desc
 
@@ -311,10 +311,10 @@ def get_colum_names(table_name:str)->list[str]:
     
     return table_data
 
-def get_index_val(table_: str)-> int:
+def get_index_val(table_name: str)-> int:
     
     query = sql.SQL('SELECT MAX(id) FROM {table};')
-    cur.execute(query.format(table=sql.Identifier(table_)))
+    cur.execute(query.format(table=sql.Identifier(table_name)))
     ind = cur.fetchone()
     
     return ind[0] + 1
@@ -390,7 +390,6 @@ ones_diff = ones_end - ones_start
 # Create and insert data into mediums table
 three_start = time.time()
 print('Inserting data to the three input table.')
-# TODO change next 2 lines after tests have ended.
 fields = get_colum_names('mediums')
 trigger, submediums = get_id_for_submediums(fields, 'mediums')
 data_set2 = {'data': submediums, 'table': 'mediums', 'fields': fields}
@@ -410,6 +409,8 @@ print('Inserting data to the eight input table.')
 ad_time = get_id_for_ad_time()
 fields = get_colum_names('ad_time_details')
 data_set3 = {'data': ad_time, 'table': 'ad_time_details', 'fields': fields}
+
+# TODO switch for no addition of data if requrements not met.
 try:
     add_8_fields(data_set3)
 except psycopg2.OperationalError as e:
@@ -425,6 +426,8 @@ print('Inserting data to the ten input table.')
 ads_desc = get_id_for_ads_desc()
 fields = get_colum_names('ads_desc')
 data_set4 = {'data': ads_desc, 'table': 'ads_desc', 'fields': fields}
+
+# TODO switch for no addition of data if requrements not met.
 try:
     add_10_fields(data_set4)
 except psycopg2.OperationalError as e:
