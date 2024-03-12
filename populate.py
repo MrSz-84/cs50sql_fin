@@ -447,17 +447,17 @@ three_diff = three_end - three_start
 # Create and insert data into ad_time_details table
 eight_start = time.time()
 print('Inserting data to the eight input table.')
-ad_time = get_id_for_ad_time()
 fields = get_colum_names('ad_time_details')
+trigger, ad_time = get_id_for_ad_time(fields, 'ad_time_details')
 data_set3 = {'data': ad_time, 'table': 'ad_time_details', 'fields': fields}
-
-# TODO switch for no addition of data if requrements not met.
-try:
-    add_8_fields(data_set3)
-except psycopg.OperationalError as e:
-    conn.close()
-    print('Failed to input the data.')
-    print(f'Error: {e}')
+if trigger:
+    print('pusta db')
+    try:
+        add_8_fields(data_set3)
+    except psycopg.OperationalError as e:
+        conn.close()
+        print('Failed to input the data.')
+        print(f'Error: {e}')
 eight_end = time.time()
 eight_diff = eight_end - eight_start
 
