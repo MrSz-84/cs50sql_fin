@@ -451,7 +451,6 @@ fields = get_colum_names('ad_time_details')
 trigger, ad_time = get_id_for_ad_time(fields, 'ad_time_details')
 data_set3 = {'data': ad_time, 'table': 'ad_time_details', 'fields': fields}
 if trigger:
-    print('pusta db')
     try:
         add_8_fields(data_set3)
     except psycopg.OperationalError as e:
