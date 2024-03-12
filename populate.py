@@ -204,7 +204,6 @@ def get_id_for_submediums(fields:list[str], table:str)-> pd.DataFrame:
     
     return (trigger, submediums)
 
-
 def get_id_for_ad_time(fields: list[str], table: str)-> tuple[bool,pd.DataFrame]:
     ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'ad_time_details']]
     ad_time.index = ad_time.index + get_index_val('ad_time_details')
@@ -319,6 +318,47 @@ def get_index_val(table_name: str)-> int:
         return 1
     else:
         return ind[0] + 1
+
+def get_min_max_date(fields: list[str], table_: str, dataframe: pd.DataFrame)-> tuple[bool, pd.DataFrame]:
+    
+    # Get max date from DB
+    query = sql.SQL('SELECT MAX({field1}) FROM {table};')
+    cur.execute(
+        query.format(
+            table=sql.Identifier(table_),
+            field1=sql.Identifier(fields[0])
+        )
+    )
+    in_db_max = pd.Timestamp(cur.fetchone()[0])
+    
+    # Get min date from DB
+    query = sql.SQL('SELECT MIN({field1}) FROM {table};')
+    cur.execute(
+        query.format(
+            table=sql.Identifier(table_),
+            field1=sql.Identifier(fields[0])
+        )
+    )
+    in_db_min = pd.Timestamp(cur.fetchone()[0])
+    
+    # Get max and min date from DF
+    in_df_max = dataframe['data'].max()
+    in_df_min = dataframe['data'].min()
+    
+    # Check if min and max dates from DF are between range of dates from DB
+    min_df_in_db_range = in_db_min <= in_df_min <= in_db_max
+    max_df_in_db_range = in_db_min <= in_df_max <= in_db_max
+    
+    # Main logic add if empty or when dates not present in DB.
+    if  pd.isnull(in_db_max) or pd.isnull(in_db_min) :
+        return (True, dataframe)
+    elif not min_df_in_db_range and not max_df_in_db_range:
+        print(f'>>> Adding to {table_}. New data found.')
+        return (True, dataframe)
+    else:
+        print(f'>>> Not adding to {table_}. One or more dates already in DB.')
+        print(f'>>> Check the data you want to insert into DB.')
+        return (False, dataframe)
 
 
 m_start = time.time()
