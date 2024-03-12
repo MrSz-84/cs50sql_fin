@@ -205,7 +205,7 @@ def get_id_for_submediums(fields:list[str], table:str)-> pd.DataFrame:
     return (trigger, submediums)
 
 
-def get_id_for_ad_time()-> pd.DataFrame:
+def get_id_for_ad_time(fields: list[str], table: str)-> tuple[bool,pd.DataFrame]:
     ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'ad_time_details']]
     ad_time.index = ad_time.index + get_index_val('ad_time_details')
 
@@ -232,7 +232,9 @@ def get_id_for_ad_time()-> pd.DataFrame:
     ad_time.loc[:, 'daypart'] = ad_time['daypart'].map(dayparts)
     ad_time.loc[:, 'dł_ujednolicona'] = ad_time['dł_ujednolicona'].map(unified_lengths)
     
-    return ad_time
+    trigger, ad_time = get_min_max_date(fields, table, ad_time)
+    
+    return (trigger, ad_time)
 
 def get_id_for_ads_desc()-> pd.DataFrame:
     ads_desc = df[['data', 'opis_reklamy', 'kod_reklamy', 'brand', 'submedium', 'ad_time_details', 'produkt(4)', 'koszt', 'l_emisji', 'typ_reklamy']]
