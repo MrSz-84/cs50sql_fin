@@ -30,8 +30,8 @@ def iter_over_inputs(data_set:list[dict[list,str,str]])-> None:
     """
     Main loop for iteration over one column tables.
 
-    :param data_set: List containing dicts with data, table name and field/column name. 
-    List contains strings or integers representing the data to be added into selected tables. 
+    :param data_set: List containing dicts with data, table name and field/column name.
+    List contains strings or integers representing the data to be added into selected tables.
     :param table_name: String representing name of the table into which data is going to be added
     :raise KeyError: If key name does not match the pattern
     :return: None
@@ -46,7 +46,19 @@ def iter_over_inputs(data_set:list[dict[list,str,str]])-> None:
             add_1_field(data, table, field)
 
 
-def check_for_data_1_field(data_:list[str], table_name:str, field_name:str)-> tuple[bool,list[str]]:
+def check_for_data_1_field(data_:list, table_name:str, field_name:str)-> tuple[bool,list[str]]:
+    """
+    Skeleton function for checking if there is data inside each of one column tables.
+    Ads data if there are any new entries, skips if no new data was found. 
+    If DB is empty returns immediately.
+
+    :param data_: List containing data to be checked and aded. Data is of str or int types.
+    :param table_name: String representing name of the table into which data is going to be added
+    :param field_name: String representing name of the field/ column name
+    :return: A tuple containing bool for logic purposes, anbd the data set to be aded
+    :rtype: tuple[bool, list[str/int]]
+    """
+    
     query = sql.SQL('SELECT {field} FROM {table}')
     cur.execute(
         query.format(
