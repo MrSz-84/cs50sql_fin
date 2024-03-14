@@ -435,6 +435,16 @@ def get_colum_names(table_name:str)->list[str]:
     return table_data
 
 def get_index_val(table_name: str)-> int:
+    """
+    Function gets max index value from the selected table and returns it as an integer increased by one.
+    When the table is empty, returns 1
+
+    :param table_name: Name of the table out of which the data is going to be pulled, 
+    represented as a str
+    :raise psycopg.DataError: If data type does not match table restrictions
+    :return: number representiung max index value of selected table icreased by 1
+    :rtype: int
+    """
     
     query = sql.SQL('SELECT MAX(id) FROM {table};')
     cur.execute(query.format(table=sql.Identifier(table_name)))
