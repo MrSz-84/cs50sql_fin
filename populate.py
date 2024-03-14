@@ -204,9 +204,9 @@ def get_id_for_submediums(fields:list[str], table:str)-> pd.DataFrame:
     
     return (trigger, submediums)
 
-def get_id_for_ad_time(fields: list[str], table: str)-> tuple[bool,pd.DataFrame]:
+def get_id_for_ad_time(fields: list[str], table_: str)-> tuple[bool,pd.DataFrame]:
     ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'ad_time_details']]
-    ad_time.index = ad_time.index + get_index_val('ad_time_details')
+    ad_time.index = ad_time.index + get_index_val(table_)
 
     query1 = sql.SQL('SELECT {fields} FROM {table}').format(
         fields=sql.SQL(',').join([
@@ -231,16 +231,13 @@ def get_id_for_ad_time(fields: list[str], table: str)-> tuple[bool,pd.DataFrame]
     ad_time.loc[:, 'daypart'] = ad_time['daypart'].map(dayparts)
     ad_time.loc[:, 'dł_ujednolicona'] = ad_time['dł_ujednolicona'].map(unified_lengths)
     
-    trigger, ad_time = get_min_max_date(fields, table, ad_time)
+    trigger, ad_time = get_min_max_date(fields, table_, ad_time)
     
     return (trigger, ad_time)
 
-def get_id_for_ads_desc()-> pd.DataFrame:
+def get_id_for_ads_desc(fields: list[str], table_: str)-> tuple[bool,pd.DataFrame]:
     ads_desc = df[['data', 'opis_reklamy', 'kod_reklamy', 'brand', 'submedium', 'ad_time_details', 'produkt(4)', 'koszt', 'l_emisji', 'typ_reklamy']]
-    ads_desc.index = ads_desc.index + 1
-
-    if sum(ads_desc.value_counts()) != ads_desc.index.max():
-        exit('Max index different than the length of the list.')
+    ads_desc.index = ads_desc.index + get_index_val(table_)
 
     query1 = sql.SQL('SELECT {fields} FROM {table}').format(
         fields=sql.SQL(',').join([
@@ -290,7 +287,9 @@ def get_id_for_ads_desc()-> pd.DataFrame:
     ads_desc.loc[:, 'ad_time_details'] = ads_desc['ad_time_details'].map(ad_time_details_id)
     ads_desc.loc[:, 'produkt(4)'] = ads_desc['produkt(4)'].map(product_type_id)
     
-    return ads_desc
+    trigger, ads_desc = get_min_max_date(fields, table_, ads_desc)
+    
+    return (trigger, ads_desc)
 
 def get_colum_names(table_name:str)->list[str]:
     query = sql.SQL(
@@ -377,7 +376,7 @@ cur = conn.cursor()
 print('Creating DataFrame.')
 df_start = time.time()
 # Reads the dataframe
-df = pd.read_csv('./data/baza.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8', parse_dates=['data'])
+df = pd.read_csv('./data/baza2.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8', parse_dates=['data'])
 df.sort_values(by='data', axis=0, inplace=True)
 df.reset_index(inplace=True)
 df.drop('index', axis=1, inplace=True)
@@ -463,17 +462,16 @@ eight_diff = eight_end - eight_start
 # Create and insert data into ad_time_details table
 ten_start = time.time()
 print('Inserting data to the ten input table.')
-ads_desc = get_id_for_ads_desc()
 fields = get_colum_names('ads_desc')
+trigger, ads_desc = get_id_for_ads_desc(fields, 'ads_desc')
 data_set4 = {'data': ads_desc, 'table': 'ads_desc', 'fields': fields}
-
-# TODO switch for no addition of data if requrements not met.
-try:
-    add_10_fields(data_set4)
-except psycopg.OperationalError as e:
-    conn.close()
-    print('Failed to input the data.')
-    print(f'Error: {e}')
+if trigger:
+    try:
+        add_10_fields(data_set4)
+    except psycopg.OperationalError as e:
+        conn.close()
+        print('Failed to input the data.')
+        print(f'Error: {e}')
 ten_end = time.time()
 ten_diff = ten_end - ten_start
 
