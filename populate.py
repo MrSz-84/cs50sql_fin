@@ -45,7 +45,6 @@ def iter_over_inputs(data_set:list[dict[list,str,str]])-> None:
         if new_data:
             add_1_field(data, table, field)
 
-
 def check_for_data_1_field(data_:list, table_name:str, field_name:str)-> tuple[bool,list[str]]:
     """
     Skeleton function for checking if there is data inside each of one column tables.
@@ -98,6 +97,16 @@ def check_for_data_1_field(data_:list, table_name:str, field_name:str)-> tuple[b
             return (False, list(''))
 
 def add_3_fields(data_set:dict[pd.DataFrame,str,list])-> None:
+    """
+    Function adding data into mediums table, which consists of 3 columns.
+
+    :param data_set: A dict contaning data to be added, table name, and field / column name.
+    Data is a Pandas DataFrame, table name and field name are both strings.
+    :raise KeyError: If key name does not match the pattern
+    :raise psycopg.DataError: If table or field names doesn't match those in the DB
+    :return: None
+    """
+    
     col = data_set['data'].columns.values.tolist()
     
     query = sql.SQL('INSERT INTO {table} ({field1}, {field2}, {field3}) VALUES (%s, %s ,%s)')
