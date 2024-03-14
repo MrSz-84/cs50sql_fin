@@ -7,6 +7,16 @@ import time
 
 
 def add_1_field(data:list, table_name:str, field_name: str)-> None:
+    """
+    Skeleton function for adding data to single column tables.
+
+    :param data: List of strings or integers representing table contents
+    :param table_name: String reprexsenting name of the table into which data is going to be added
+    :raise psycopg.DataError: If data type does not match table restrictions
+    :return: None
+    :rtype: list
+    """
+    
     query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
 
     for elem in data:
