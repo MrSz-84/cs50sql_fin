@@ -131,7 +131,7 @@ def check_for_data_3_fields(fields:list[str], table_name: str, submediums: pd.Da
     or indicates there is nothing to be added.
 
     :param fields: A list containing field / column names represented as a str
-    :param table_name: Name of tabel into which data is going to be added as a str
+    :param table_name: Name of the table into which data is going to be added as a str
     :param submediums: Pandas DataFrame containing data to add.
     :raise psycopg.DataError: If data type does not match table restrictions
     :return: Tuple containing bool for logic purposes and a Pandas DataFrame 
@@ -246,7 +246,21 @@ def add_10_fields(data_set:dict[pd.DataFrame,str,list[str]])-> None:
         
     conn.commit()
 
-def get_id_for_submediums(fields:list[str], table:str)-> pd.DataFrame:
+def get_id_for_submediums(fields:list[str], table_:str)-> tuple[bool, pd.DataFrame]:
+    """
+    Gets IDs for reference tables to mediums table. 
+    Mainly connects submediums with broadcaster and reach tables.
+    Returns a bool for logic purposes and data to be added into mediums.
+
+    :param fields: A list containing field / column names represented as a str
+    :param table_: Name of the table out of which the data is going to be pulled, 
+    represented as a str
+    :raise psycopg.DataError: If data type does not match table restrictions
+    :return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+    as data to be added into the DB during the update or initial DB fill.
+    :rtype: tuple[bool, pd.DataFrame]
+    """
+    
     submediums = df[['submedium', 'wydawca_nadawca', 'zasięg medium']].sort_values(by='submedium')
     submediums.drop_duplicates(subset=['submedium'], keep='first', inplace=True, ignore_index=True)
     
@@ -274,7 +288,7 @@ def get_id_for_submediums(fields:list[str], table:str)-> pd.DataFrame:
     submediums['wydawca_nadawca'] = submediums['wydawca_nadawca'].map(broadcasters)
     submediums['zasięg medium'] = submediums['zasięg medium'].map(ad_reach)
     
-    trigger, submediums = check_for_data_3_fields(fields, table, submediums)
+    trigger, submediums = check_for_data_3_fields(fields, table_, submediums)
     
     return (trigger, submediums)
 
