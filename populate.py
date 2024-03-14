@@ -51,10 +51,11 @@ def check_for_data_1_field(data_:list, table_name:str, field_name:str)-> tuple[b
     Ads data if there are any new entries, skips if no new data was found. 
     If DB is empty returns immediately.
 
-    :param data_: List containing data to be checked and aded. Data is of str or int types.
+    :param data_: List containing data to be checked and added. Data is of str or int types.
     :param table_name: String representing name of the table into which data is going to be added
     :param field_name: String representing name of the field/ column name
-    :return: A tuple containing bool for logic purposes, anbd the data set to be aded
+    :raise psycopg.DataError: If data type does not match table restrictions
+    :return: A tuple containing bool for logic purposes, anbd the data set to be added
     :rtype: tuple[bool, list[str/int]]
     """
     
@@ -124,6 +125,20 @@ def add_3_fields(data_set:dict[pd.DataFrame,str,list])-> None:
     conn.commit()
     
 def check_for_data_3_fields(fields:list[str], table_name: str, submediums: pd.DataFrame)-> tuple[bool,pd.DataFrame]:
+    """
+    Returns a bool for logic purposes and data to be added into mediums table.
+    If DB is empty returns original DF. During data update process returns the data not present in the DB
+    or indicates there is nothing to be added.
+
+    :param fields: A list containing field / column names represented as a str
+    :param table_name: Name of tabel into which data is going to be added as a str
+    :param submediums: Pandas DataFrame containing data to add.
+    :raise psycopg.DataError: If data type does not match table restrictions
+    :return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+    as data to be added into the DB during the update
+    :rtype: tuple[bool, pd.DataFrame]
+    """
+    
     query = sql.SQL('SELECT id, {field1}, {field2}, {field3} FROM {table}')
     cur.execute(
         query.format(
