@@ -166,6 +166,16 @@ def check_for_data_3_fields(fields:list[str], table_name: str, submediums: pd.Da
         return (False, submediums)
 
 def add_8_fields(data_set:dict[pd.DataFrame,str,list[str]])-> None:
+    """
+    Function adding data into ad_time_details table, which consists of 8 columns.
+
+    :param data_set: A dict contaning data to be added, table name, and field / column name.
+    Data is a Pandas DataFrame, table name and field name are both strings.
+    :raise KeyError: If key name does not match the pattern
+    :raise psycopg.DataError: If table or field names doesn't match those in the DB
+    :return: None
+    """
+    
     col = data_set['data'].columns.values.tolist()
     
     query = sql.SQL(
@@ -195,6 +205,16 @@ def add_8_fields(data_set:dict[pd.DataFrame,str,list[str]])-> None:
     conn.commit()
 
 def add_10_fields(data_set:dict[pd.DataFrame,str,list[str]])-> None:
+    """
+    Function adding data into ad_time_details table, which consists of 10 columns.
+
+    :param data_set: A dict contaning data to be added, table name, and field / column name.
+    Data is a Pandas DataFrame, table name and field name are both strings.
+    :raise KeyError: If key name does not match the pattern
+    :raise psycopg.DataError: If table or field names doesn't match those in the DB
+    :return: None
+    """
+    
     col = data_set['data'].columns.values.tolist()
     
     query = sql.SQL(
