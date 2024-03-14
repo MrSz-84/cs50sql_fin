@@ -14,7 +14,6 @@ def add_1_field(data:list, table_name:str, field_name: str)-> None:
     :param table_name: String reprexsenting name of the table into which data is going to be added
     :raise psycopg.DataError: If data type does not match table restrictions
     :return: None
-    :rtype: list
     """
     
     query = sql.SQL('INSERT INTO {table} ({field}) VALUES (%s)')
@@ -27,7 +26,16 @@ def add_1_field(data:list, table_name:str, field_name: str)-> None:
         )
     conn.commit()
 
-def iter_over_inputs(data_set:dict[list[str],str,str])-> None:
+def iter_over_inputs(data_set:list[dict[list,str,str]])-> None:
+    """
+    Main loop for iteration over one column tables.
+
+    :param data_set: List containing dicts with data, table name and field/column name. 
+    List contains strings or integers representing the data to be added into selected tables. 
+    :param table_name: String representing name of the table into which data is going to be added
+    :raise KeyError: If key name does not match the pattern
+    :return: None
+    """
     
     for elem in data_set:
         data = elem['data']
