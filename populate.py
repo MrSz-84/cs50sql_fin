@@ -248,7 +248,7 @@ def add_10_fields(data_set:dict[pd.DataFrame,str,list[str]])-> None:
 
 def get_id_for_submediums(fields:list[str], table_:str)-> tuple[bool, pd.DataFrame]:
     """
-    Gets IDs for reference tables to mediums table. 
+    Gets IDs from reference tables to mediums table. 
     Mainly connects submediums with broadcaster and reach tables.
     Returns a bool for logic purposes and data to be added into mediums.
 
@@ -293,6 +293,20 @@ def get_id_for_submediums(fields:list[str], table_:str)-> tuple[bool, pd.DataFra
     return (trigger, submediums)
 
 def get_id_for_ad_time(fields: list[str], table_: str)-> tuple[bool,pd.DataFrame]:
+    """
+    Gets IDs from reference tables to ad_time_details table. 
+    Mainly connects time details of singular ad emission with other tables containing details via IDs.
+    Returns a bool for logic purposes and data to be added into mediums.
+
+    :param fields: A list containing field / column names represented as a str
+    :param table_: Name of the table out of which the data is going to be pulled, 
+    represented as a str
+    :raise psycopg.DataError: If data type does not match table restrictions
+    :return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+    as data to be added into the DB during the update or initial DB fill.
+    :rtype: tuple[bool, pd.DataFrame]
+    """
+    
     ad_time = df[['data', 'godzina_bloku_reklamowego', 'gg', 'mm', 'dl_mod', 'daypart', 'dł_ujednolicona', 'ad_time_details']]
     ad_time.index = ad_time.index + get_index_val(table_)
 
