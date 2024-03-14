@@ -455,6 +455,20 @@ def get_index_val(table_name: str)-> int:
         return ind[0] + 1
 
 def get_min_max_date(fields: list[str], table_: str, dataframe: pd.DataFrame)-> tuple[bool, pd.DataFrame]:
+    """
+    Gets max and min dates from selected table. Then checks if dates present in the DF passed as a parameter
+    are outside of dates range. If so, allows data insertion into the DB, if not it informs the user, 
+    and proceedes with the rest of the code.
+
+    :param fields: A list containing field / column names represented as a str
+    :param table_: Name of the table out of which the data is going to be pulled, 
+    represented as a str
+    :param dataframe: Pandas DataFrame with the new data to be checked if not present in selected table
+    :raise psycopg.DatabaseError: If column names does not match DB contents
+    :return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+    as data to be added into the DB during the update or initial DB fill.
+    :rtype: tuple[bool, pd.DataFrame]
+    """
     
     # Get max date from DB
     query = sql.SQL('SELECT MAX({field1}) FROM {table};')
