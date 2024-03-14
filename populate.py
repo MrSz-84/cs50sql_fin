@@ -410,6 +410,14 @@ def get_id_for_ads_desc(fields: list[str], table_: str)-> tuple[bool,pd.DataFram
     return (trigger, ads_desc)
 
 def get_colum_names(table_name:str)->list[str]:
+    """
+    A function which returns the names of selected table from the DB.
+
+    :raise psycopg.DatabaseError: If column names does not match DB contents
+    :return: List containing all the column names present in selected table. 
+    :rtype: list[str]
+    """
+    
     query = sql.SQL(
     '''
     SELECT c.column_name 
