@@ -296,6 +296,7 @@ def get_id_for_ad_time(fields: list[str], table_: str)-> tuple[bool,pd.DataFrame
     """
     Gets IDs from reference tables to ad_time_details table. 
     Mainly connects time details of singular ad emission with other tables containing details via IDs.
+    This function populates one of two core tables in this DB.
     Returns a bool for logic purposes and data to be added into mediums.
 
     :param fields: A list containing field / column names represented as a str
@@ -338,6 +339,21 @@ def get_id_for_ad_time(fields: list[str], table_: str)-> tuple[bool,pd.DataFrame
     return (trigger, ad_time)
 
 def get_id_for_ads_desc(fields: list[str], table_: str)-> tuple[bool,pd.DataFrame]:
+    """
+    Gets IDs from reference tables to ads_desc table. 
+    Mainly connects other tables and data of singular ad emission via IDs with other tables.
+    This function populates one of two core tables in this DB.
+    Returns a bool for logic purposes and data to be added into mediums.
+
+    :param fields: A list containing field / column names represented as a str
+    :param table_: Name of the table out of which the data is going to be pulled, 
+    represented as a str
+    :raise psycopg.DataError: If data type does not match table restrictions
+    :return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+    as data to be added into the DB during the update or initial DB fill.
+    :rtype: tuple[bool, pd.DataFrame]
+    """
+    
     ads_desc = df[['data', 'opis_reklamy', 'kod_reklamy', 'brand', 'submedium', 'ad_time_details', 'produkt(4)', 'koszt', 'l_emisji', 'typ_reklamy']]
     ads_desc.index = ads_desc.index + get_index_val(table_)
 
