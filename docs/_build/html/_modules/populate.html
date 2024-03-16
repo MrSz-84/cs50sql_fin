@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>populate &mdash; Radio ads PostgreSQL DB 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Radio ads PostgreSQL DB
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">cs50sql_fin</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Radio ads PostgreSQL DB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">populate</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for populate</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">tools.conf</span>
+<span class="kn">import</span> <span class="nn">psycopg</span>
+<span class="kn">from</span> <span class="nn">psycopg</span> <span class="kn">import</span> <span class="n">sql</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+
+<div class="viewcode-block" id="add_1_field">
+<a class="viewcode-back" href="../populate.html#populate.add_1_field">[docs]</a>
+<span class="k">def</span> <span class="nf">add_1_field</span><span class="p">(</span><span class="n">data</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">field_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Skeleton function for adding data to single column tables.</span>
+
+<span class="sd">    :param data: List of strings or integers representing table contents</span>
+<span class="sd">    :param table_name: String reprexsenting name of the table into which data is going to be added</span>
+<span class="sd">    :raise psycopg.DataError: If data type does not match table restrictions</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;INSERT INTO </span><span class="si">{table}</span><span class="s1"> (</span><span class="si">{field}</span><span class="s1">) VALUES (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span>
+                <span class="n">field</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)),</span> <span class="p">(</span><span class="n">elem</span><span class="p">,)</span>
+        <span class="p">)</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="iter_over_inputs">
+<a class="viewcode-back" href="../populate.html#populate.iter_over_inputs">[docs]</a>
+<span class="k">def</span> <span class="nf">iter_over_inputs</span><span class="p">(</span><span class="n">data_set</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]])</span><span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main loop for iteration over one column tables.</span>
+
+<span class="sd">    :param data_set: List containing dicts with data, table name and field/column name.</span>
+<span class="sd">    List contains strings or integers representing the data to be added into selected tables.</span>
+<span class="sd">    :param table_name: String representing name of the table into which data is going to be added</span>
+<span class="sd">    :raise KeyError: If key name does not match the pattern</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">data_set</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">elem</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">elem</span><span class="p">[</span><span class="s1">&#39;table&#39;</span><span class="p">]</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="n">elem</span><span class="p">[</span><span class="s1">&#39;field&#39;</span><span class="p">]</span>
+        <span class="n">new_data</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">check_for_data_1_field</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">new_data</span><span class="p">:</span>
+            <span class="n">add_1_field</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="check_for_data_1_field">
+<a class="viewcode-back" href="../populate.html#populate.check_for_data_1_field">[docs]</a>
+<span class="k">def</span> <span class="nf">check_for_data_1_field</span><span class="p">(</span><span class="n">data_</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">field_name</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Skeleton function for checking if there is data inside each of one column tables.</span>
+<span class="sd">    Ads data if there are any new entries, skips if no new data was found. </span>
+<span class="sd">    If DB is empty returns immediately.</span>
+
+<span class="sd">    :param data_: List containing data to be checked and added. Data is of str or int types.</span>
+<span class="sd">    :param table_name: String representing name of the table into which data is going to be added</span>
+<span class="sd">    :param field_name: String representing name of the field/ column name</span>
+<span class="sd">    :raise psycopg.DataError: If data type does not match table restrictions</span>
+<span class="sd">    :return: A tuple containing bool for logic purposes, anbd the data set to be added</span>
+<span class="sd">    :rtype: tuple[bool, list[str/int]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT </span><span class="si">{field}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">table_name</span><span class="p">),</span>
+            <span class="n">field</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">field_name</span><span class="p">))</span>
+    <span class="p">)</span>
+    
+    <span class="n">in_db</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()])</span>
+    <span class="n">in_db</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">field_name</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">in_db</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">data_</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;date&#39;</span><span class="p">:</span>
+            <span class="n">in_db</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">in_db</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+            <span class="n">in_db</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">in_db</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">in_db</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">in_db</span><span class="p">[</span><span class="n">field_name</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">in_db</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">avoid_adding</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&gt;&gt;&gt; Not adding to </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">. No new data found.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">))</span>
+        <span class="n">in_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data_</span><span class="p">)</span>
+        <span class="n">in_df</span> <span class="o">=</span> <span class="n">in_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">field_name</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">field_name</span> <span class="o">==</span> <span class="s1">&#39;date&#39;</span><span class="p">:</span>
+            <span class="n">in_df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">in_df</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">])</span>
+        
+        <span class="c1"># we check if df contains new data in comparison to DB</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">in_df</span><span class="p">[</span><span class="o">~</span><span class="n">in_df</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">in_db</span><span class="p">)]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&gt;&gt;&gt; Adding to </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">. New data found.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="add_3_fields">
+<a class="viewcode-back" href="../populate.html#populate.add_3_fields">[docs]</a>
+<span class="k">def</span> <span class="nf">add_3_fields</span><span class="p">(</span><span class="n">data_set</span><span class="p">:</span><span class="nb">dict</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span><span class="nb">list</span><span class="p">])</span><span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function adding data into mediums table, which consists of 3 columns.</span>
+
+<span class="sd">    :param data_set: A dict contaning data to be added, table name, and field / column name.</span>
+<span class="sd">    Data is a Pandas DataFrame, table name and field name are both strings.</span>
+<span class="sd">    :raise KeyError: If key name does not match the pattern</span>
+<span class="sd">    :raise psycopg.DataError: If table or field names doesn&#39;t match those in the DB</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">col</span> <span class="o">=</span> <span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;INSERT INTO </span><span class="si">{table}</span><span class="s1"> (</span><span class="si">{field1}</span><span class="s1">, </span><span class="si">{field2}</span><span class="s1">, </span><span class="si">{field3}</span><span class="s1">) VALUES (</span><span class="si">%s</span><span class="s1">, </span><span class="si">%s</span><span class="s1"> ,</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;table&#39;</span><span class="p">]),</span>
+                <span class="n">field1</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="n">field2</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">field3</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">])),</span> 
+                <span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">2</span><span class="p">]],)</span>
+        <span class="p">)</span>
+        
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="check_for_data_3_fields">
+<a class="viewcode-back" href="../populate.html#populate.check_for_data_3_fields">[docs]</a>
+<span class="k">def</span> <span class="nf">check_for_data_3_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">submediums</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a bool for logic purposes and data to be added into mediums table.</span>
+<span class="sd">    If DB is empty returns original DF. During data update process returns the data not present in the DB</span>
+<span class="sd">    or indicates there is nothing to be added.</span>
+
+<span class="sd">    :param fields: A list containing field / column names represented as a str</span>
+<span class="sd">    :param table_name: Name of the table into which data is going to be added as a str</span>
+<span class="sd">    :param submediums: Pandas DataFrame containing data to add.</span>
+<span class="sd">    :raise psycopg.DataError: If data type does not match table restrictions</span>
+<span class="sd">    :return: Tuple containing bool for logic purposes and a Pandas DataFrame </span>
+<span class="sd">    as data to be added into the DB during the update</span>
+<span class="sd">    :rtype: tuple[bool, pd.DataFrame]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT id, </span><span class="si">{field1}</span><span class="s1">, </span><span class="si">{field2}</span><span class="s1">, </span><span class="si">{field3}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">table_name</span><span class="p">),</span>
+            <span class="n">field1</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">field2</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">field3</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="p">)</span>
+    
+    <span class="n">in_db</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+    <span class="n">in_db</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">:</span> <span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">:</span> <span class="n">fields</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">:</span> <span class="n">fields</span><span class="p">[</span><span class="mi">2</span><span class="p">]},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">in_db</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">submediums</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">in_db</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">in_db</span><span class="p">[</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">in_df</span> <span class="o">=</span> <span class="n">submediums</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># we check if df contains new data in comparison to DB</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">in_df</span><span class="p">[</span><span class="o">~</span><span class="n">in_df</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">in_db</span><span class="p">)]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_data</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&gt;&gt;&gt; Adding to </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">. New data found.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_data</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&gt;&gt;&gt; Not adding to </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">. No new data found.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">submediums</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_8_fields">
+<a class="viewcode-back" href="../populate.html#populate.add_8_fields">[docs]</a>
+<span class="k">def</span> <span class="nf">add_8_fields</span><span class="p">(</span><span class="n">data_set</span><span class="p">:</span><span class="nb">dict</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span><span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function adding data into ad_time_details table, which consists of 8 columns.</span>
+
+<span class="sd">    :param data_set: A dict contaning data to be added, table name, and field / column name.</span>
+<span class="sd">    Data is a Pandas DataFrame, table name and field name are both strings.</span>
+<span class="sd">    :raise KeyError: If key name does not match the pattern</span>
+<span class="sd">    :raise psycopg.DataError: If table or field names doesn&#39;t match those in the DB</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">col</span> <span class="o">=</span> <span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        INSERT INTO {table} ({field1}, {field2}, {field3}, {field4}, {field5}, {field6}, {field7}, {field8}) </span>
+<span class="sd">        VALUES (%s, %s ,%s, %s ,%s, %s ,%s ,%s)</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;table&#39;</span><span class="p">]),</span>
+                <span class="n">field1</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="n">field2</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">field3</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="n">field4</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">]),</span>
+                <span class="n">field5</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">]),</span>
+                <span class="n">field6</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">5</span><span class="p">]),</span>
+                <span class="n">field7</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">6</span><span class="p">]),</span>
+                <span class="n">field8</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">7</span><span class="p">])),</span> 
+                <span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> 
+                 <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">4</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">5</span><span class="p">]],</span> 
+                 <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">6</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">7</span><span class="p">]],</span>
+                <span class="p">)</span>
+        <span class="p">)</span>
+        
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="add_10_fields">
+<a class="viewcode-back" href="../populate.html#populate.add_10_fields">[docs]</a>
+<span class="k">def</span> <span class="nf">add_10_fields</span><span class="p">(</span><span class="n">data_set</span><span class="p">:</span><span class="nb">dict</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span><span class="nb">str</span><span class="p">,</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span><span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function adding data into ad_time_details table, which consists of 10 columns.</span>
+
+<span class="sd">    :param data_set: A dict contaning data to be added, table name, and field / column name.</span>
+<span class="sd">    Data is a Pandas DataFrame, table name and field name are both strings.</span>
+<span class="sd">    :raise KeyError: If key name does not match the pattern</span>
+<span class="sd">    :raise psycopg.DataError: If table or field names doesn&#39;t match those in the DB</span>
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">col</span> <span class="o">=</span> <span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        INSERT INTO {table} ({field1}, {field2}, {field3}, {field4}, {field5}, {field6}, {field7}, {field8}, {field9}, {field10}) </span>
+<span class="sd">        VALUES (%s, %s ,%s, %s ,%s, %s ,%s ,%s ,%s ,%s)</span>
+<span class="sd">        &#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;table&#39;</span><span class="p">]),</span>
+                <span class="n">field1</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="n">field2</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="n">field3</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="n">field4</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">]),</span>
+                <span class="n">field5</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">]),</span>
+                <span class="n">field6</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">5</span><span class="p">]),</span>
+                <span class="n">field7</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">6</span><span class="p">]),</span>
+                <span class="n">field8</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">7</span><span class="p">]),</span>
+                <span class="n">field9</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">8</span><span class="p">]),</span>
+                <span class="n">field10</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">data_set</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">][</span><span class="mi">9</span><span class="p">])),</span> 
+                <span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> 
+                 <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">4</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">5</span><span class="p">]],</span> 
+                 <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">6</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">7</span><span class="p">]],</span> <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">8</span><span class="p">]],</span> 
+                 <span class="n">elem</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">9</span><span class="p">]],</span>
+                <span class="p">)</span>
+        <span class="p">)</span>
+        
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_id_for_submediums">
+<a class="viewcode-back" href="../populate.html#populate.get_id_for_submediums">[docs]</a>
+<span class="k">def</span> <span class="nf">get_id_for_submediums</span><span class="p">(</span><span class="n">fields</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">table_</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets IDs from reference tables to mediums table. </span>
+<span class="sd">    Mainly connects submediums with broadcaster and reach tables.</span>
+<span class="sd">    Returns a bool for logic purposes and data to be added into mediums.</span>
+
+<span class="sd">    :param fields: A list containing field / column names represented as a str</span>
+<span class="sd">    :param table_: Name of the table out of which the data is going to be pulled, </span>
+<span class="sd">    represented as a str</span>
+<span class="sd">    :raise psycopg.DataError: If data type does not match table restrictions</span>
+<span class="sd">    :return: Tuple containing bool for logic purposes and a Pandas DataFrame </span>
+<span class="sd">    as data to be added into the DB during the update or initial DB fill.</span>
+<span class="sd">    :rtype: tuple[bool, pd.DataFrame]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">submediums</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;submedium&#39;</span><span class="p">,</span> <span class="s1">&#39;wydawca_nadawca&#39;</span><span class="p">,</span> <span class="s1">&#39;zasięg medium&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;submedium&#39;</span><span class="p">)</span>
+    <span class="n">submediums</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;submedium&#39;</span><span class="p">],</span> <span class="n">keep</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">submediums</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span> <span class="o">!=</span> <span class="n">submediums</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">exit</span><span class="p">(</span><span class="s1">&#39;Max index different than the length of the list.&#39;</span><span class="p">)</span>
+    
+    <span class="n">query1</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT </span><span class="si">{fields}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">fields</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+        <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;broadcaster&#39;</span><span class="p">),</span>
+        <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+    <span class="p">]),</span>
+    <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;broadcasters&#39;</span><span class="p">))</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query1</span><span class="p">)</span>
+    <span class="n">broadcasters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+
+    <span class="n">query2</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT </span><span class="si">{fields}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;reach&#39;</span><span class="p">),</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+        <span class="p">]),</span>
+        <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;ad_reach&#39;</span><span class="p">))</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query2</span><span class="p">)</span>
+    <span class="n">ad_reach</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+
+    <span class="n">submediums</span><span class="p">[</span><span class="s1">&#39;wydawca_nadawca&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">submediums</span><span class="p">[</span><span class="s1">&#39;wydawca_nadawca&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">broadcasters</span><span class="p">)</span>
+    <span class="n">submediums</span><span class="p">[</span><span class="s1">&#39;zasięg medium&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">submediums</span><span class="p">[</span><span class="s1">&#39;zasięg medium&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">ad_reach</span><span class="p">)</span>
+    
+    <span class="n">trigger</span><span class="p">,</span> <span class="n">submediums</span> <span class="o">=</span> <span class="n">check_for_data_3_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">table_</span><span class="p">,</span> <span class="n">submediums</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">trigger</span><span class="p">,</span> <span class="n">submediums</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_id_for_ad_time">
+<a class="viewcode-back" href="../populate.html#populate.get_id_for_ad_time">[docs]</a>
+<span class="k">def</span> <span class="nf">get_id_for_ad_time</span><span class="p">(</span><span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">table_</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets IDs from reference tables to ad_time_details table. </span>
+<span class="sd">    Mainly connects time details of singular ad emission with other tables containing details via IDs.</span>
+<span class="sd">    This function populates one of two core tables in this DB.</span>
+<span class="sd">    Returns a bool for logic purposes and data to be added into mediums.</span>
+
+<span class="sd">    :param fields: A list containing field / column names represented as a str</span>
+<span class="sd">    :param table_: Name of the table out of which the data is going to be pulled, </span>
+<span class="sd">    represented as a str</span>
+<span class="sd">    :raise psycopg.DataError: If data type does not match table restrictions</span>
+<span class="sd">    :return: Tuple containing bool for logic purposes and a Pandas DataFrame </span>
+<span class="sd">    as data to be added into the DB during the update or initial DB fill.</span>
+<span class="sd">    :rtype: tuple[bool, pd.DataFrame]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">ad_time</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;godzina_bloku_reklamowego&#39;</span><span class="p">,</span> <span class="s1">&#39;gg&#39;</span><span class="p">,</span> <span class="s1">&#39;mm&#39;</span><span class="p">,</span> <span class="s1">&#39;dl_mod&#39;</span><span class="p">,</span> <span class="s1">&#39;daypart&#39;</span><span class="p">,</span> <span class="s1">&#39;dł_ujednolicona&#39;</span><span class="p">,</span> <span class="s1">&#39;ad_time_details&#39;</span><span class="p">]]</span>
+    <span class="n">ad_time</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">ad_time</span><span class="o">.</span><span class="n">index</span> <span class="o">+</span> <span class="n">get_index_val</span><span class="p">(</span><span class="n">table_</span><span class="p">)</span>
+
+    <span class="n">query1</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT </span><span class="si">{fields}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;length&#39;</span><span class="p">),</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="p">]),</span>
+        <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;unified_lengths&#39;</span><span class="p">))</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query1</span><span class="p">)</span>
+    <span class="n">unified_lengths</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+
+    <span class="n">query2</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT </span><span class="si">{fields}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;daypart&#39;</span><span class="p">),</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="p">]),</span>
+        <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;dayparts&#39;</span><span class="p">))</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query2</span><span class="p">)</span>
+    <span class="n">dayparts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+
+    <span class="n">ad_time</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;daypart&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ad_time</span><span class="p">[</span><span class="s1">&#39;daypart&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dayparts</span><span class="p">)</span>
+    <span class="n">ad_time</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;dł_ujednolicona&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ad_time</span><span class="p">[</span><span class="s1">&#39;dł_ujednolicona&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">unified_lengths</span><span class="p">)</span>
+    
+    <span class="n">trigger</span><span class="p">,</span> <span class="n">ad_time</span> <span class="o">=</span> <span class="n">get_min_max_date</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">table_</span><span class="p">,</span> <span class="n">ad_time</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">trigger</span><span class="p">,</span> <span class="n">ad_time</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_id_for_ads_desc">
+<a class="viewcode-back" href="../populate.html#populate.get_id_for_ads_desc">[docs]</a>
+<span class="k">def</span> <span class="nf">get_id_for_ads_desc</span><span class="p">(</span><span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">table_</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets IDs from reference tables to ads_desc table. </span>
+<span class="sd">    Mainly connects other tables and data of singular ad emission via IDs with other tables.</span>
+<span class="sd">    This function populates one of two core tables in this DB.</span>
+<span class="sd">    Returns a bool for logic purposes and data to be added into mediums.</span>
+
+<span class="sd">    :param fields: A list containing field / column names represented as a str</span>
+<span class="sd">    :param table_: Name of the table out of which the data is going to be pulled, </span>
+<span class="sd">    represented as a str</span>
+<span class="sd">    :raise psycopg.DataError: If data type does not match table restrictions</span>
+<span class="sd">    :return: Tuple containing bool for logic purposes and a Pandas DataFrame </span>
+<span class="sd">    as data to be added into the DB during the update or initial DB fill.</span>
+<span class="sd">    :rtype: tuple[bool, pd.DataFrame]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">ads_desc</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;opis_reklamy&#39;</span><span class="p">,</span> <span class="s1">&#39;kod_reklamy&#39;</span><span class="p">,</span> <span class="s1">&#39;brand&#39;</span><span class="p">,</span> <span class="s1">&#39;submedium&#39;</span><span class="p">,</span> <span class="s1">&#39;ad_time_details&#39;</span><span class="p">,</span> <span class="s1">&#39;produkt(4)&#39;</span><span class="p">,</span> <span class="s1">&#39;koszt&#39;</span><span class="p">,</span> <span class="s1">&#39;l_emisji&#39;</span><span class="p">,</span> <span class="s1">&#39;typ_reklamy&#39;</span><span class="p">]]</span>
+    <span class="n">ads_desc</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">ads_desc</span><span class="o">.</span><span class="n">index</span> <span class="o">+</span> <span class="n">get_index_val</span><span class="p">(</span><span class="n">table_</span><span class="p">)</span>
+
+    <span class="n">query1</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT </span><span class="si">{fields}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;brand&#39;</span><span class="p">),</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="p">]),</span>
+        <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;brands&#39;</span><span class="p">))</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query1</span><span class="p">)</span>
+    <span class="n">brands_id</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+
+
+    <span class="n">query2</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT </span><span class="si">{fields}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;submedium&#39;</span><span class="p">),</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="p">]),</span>
+        <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;mediums&#39;</span><span class="p">))</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query2</span><span class="p">)</span>
+    <span class="n">medium_id</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+
+
+    <span class="n">query3</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT </span><span class="si">{fields}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;ad_code&#39;</span><span class="p">),</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="p">]),</span>
+        <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;ad_time_details&#39;</span><span class="p">))</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query3</span><span class="p">)</span>
+    <span class="n">ad_time_details_id</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+
+
+    <span class="n">query4</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT </span><span class="si">{fields}</span><span class="s1"> FROM </span><span class="si">{table}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;product_type&#39;</span><span class="p">),</span>
+            <span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+            <span class="p">]),</span>
+        <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="s1">&#39;product_types&#39;</span><span class="p">))</span>
+
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query4</span><span class="p">)</span>
+    <span class="n">product_type_id</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+
+    <span class="n">ads_desc</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;brand&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ads_desc</span><span class="p">[</span><span class="s1">&#39;brand&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">brands_id</span><span class="p">)</span>
+    <span class="n">ads_desc</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;submedium&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ads_desc</span><span class="p">[</span><span class="s1">&#39;submedium&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">medium_id</span><span class="p">)</span>
+    <span class="n">ads_desc</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;ad_time_details&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ads_desc</span><span class="p">[</span><span class="s1">&#39;ad_time_details&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">ad_time_details_id</span><span class="p">)</span>
+    <span class="n">ads_desc</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;produkt(4)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ads_desc</span><span class="p">[</span><span class="s1">&#39;produkt(4)&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">product_type_id</span><span class="p">)</span>
+    
+    <span class="n">trigger</span><span class="p">,</span> <span class="n">ads_desc</span> <span class="o">=</span> <span class="n">get_min_max_date</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">table_</span><span class="p">,</span> <span class="n">ads_desc</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">trigger</span><span class="p">,</span> <span class="n">ads_desc</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_colum_names">
+<a class="viewcode-back" href="../populate.html#populate.get_colum_names">[docs]</a>
+<span class="k">def</span> <span class="nf">get_colum_names</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A function which returns the names of selected table from the DB.</span>
+
+<span class="sd">    :raise psycopg.DatabaseError: If column names does not match DB contents</span>
+<span class="sd">    :return: List containing all the column names present in selected table. </span>
+<span class="sd">    :rtype: list[str]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    SELECT c.column_name </span>
+<span class="sd">    FROM information_schema.columns c </span>
+<span class="sd">    WHERE c.table_name = %s</span>
+<span class="sd">    ORDER BY c.ordinal_position;</span>
+<span class="sd">    &#39;&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,))</span>
+    <span class="n">table_data</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">table_data</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">table_data</span> <span class="o">=</span> <span class="n">temp</span>
+    
+    <span class="k">return</span> <span class="n">table_data</span></div>
+
+
+<div class="viewcode-block" id="get_index_val">
+<a class="viewcode-back" href="../populate.html#populate.get_index_val">[docs]</a>
+<span class="k">def</span> <span class="nf">get_index_val</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function gets max index value from the selected table and returns it as an integer increased by one.</span>
+<span class="sd">    When the table is empty, returns 1</span>
+
+<span class="sd">    :param table_name: Name of the table out of which the data is going to be pulled, </span>
+<span class="sd">    represented as a str</span>
+<span class="sd">    :raise psycopg.DataError: If data type does not match table restrictions</span>
+<span class="sd">    :return: number representiung max index value of selected table icreased by 1</span>
+<span class="sd">    :rtype: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT MAX(id) FROM </span><span class="si">{table}</span><span class="s1">;&#39;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">table_name</span><span class="p">)))</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="get_min_max_date">
+<a class="viewcode-back" href="../populate.html#populate.get_min_max_date">[docs]</a>
+<span class="k">def</span> <span class="nf">get_min_max_date</span><span class="p">(</span><span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">table_</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span><span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets max and min dates from selected table. Then checks if dates present in the DF passed as a parameter</span>
+<span class="sd">    are outside of dates range. If so, allows data insertion into the DB, if not it informs the user, </span>
+<span class="sd">    and proceedes with the rest of the code.</span>
+
+<span class="sd">    :param fields: A list containing field / column names represented as a str</span>
+<span class="sd">    :param table_: Name of the table out of which the data is going to be pulled, </span>
+<span class="sd">    represented as a str</span>
+<span class="sd">    :param dataframe: Pandas DataFrame with the new data to be checked if not present in selected table</span>
+<span class="sd">    :raise psycopg.DatabaseError: If column names does not match DB contents</span>
+<span class="sd">    :return: Tuple containing bool for logic purposes and a Pandas DataFrame </span>
+<span class="sd">    as data to be added into the DB during the update or initial DB fill.</span>
+<span class="sd">    :rtype: tuple[bool, pd.DataFrame]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Get max date from DB</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT MAX(</span><span class="si">{field1}</span><span class="s1">) FROM </span><span class="si">{table}</span><span class="s1">;&#39;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">table_</span><span class="p">),</span>
+            <span class="n">field1</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">in_db_max</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="c1"># Get min date from DB</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">SQL</span><span class="p">(</span><span class="s1">&#39;SELECT MIN(</span><span class="si">{field1}</span><span class="s1">) FROM </span><span class="si">{table}</span><span class="s1">;&#39;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">query</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">table</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">table_</span><span class="p">),</span>
+            <span class="n">field1</span><span class="o">=</span><span class="n">sql</span><span class="o">.</span><span class="n">Identifier</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">in_db_min</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="c1"># Get max and min date from DF</span>
+    <span class="n">in_df_max</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">in_df_min</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    
+    <span class="c1"># Check if min and max dates from DF are between range of dates from DB</span>
+    <span class="n">min_df_in_db_range</span> <span class="o">=</span> <span class="n">in_db_min</span> <span class="o">&lt;=</span> <span class="n">in_df_min</span> <span class="o">&lt;=</span> <span class="n">in_db_max</span>
+    <span class="n">max_df_in_db_range</span> <span class="o">=</span> <span class="n">in_db_min</span> <span class="o">&lt;=</span> <span class="n">in_df_max</span> <span class="o">&lt;=</span> <span class="n">in_db_max</span>
+    
+    <span class="c1"># Main logic add if empty or when dates not present in DB.</span>
+    <span class="k">if</span>  <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">in_db_max</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">in_db_min</span><span class="p">)</span> <span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">min_df_in_db_range</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">max_df_in_db_range</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&gt;&gt;&gt; Adding to </span><span class="si">{</span><span class="n">table_</span><span class="si">}</span><span class="s1">. New data found.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&gt;&gt;&gt; Not adding to </span><span class="si">{</span><span class="n">table_</span><span class="si">}</span><span class="s1">. One or more dates already in DB.&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&gt;&gt;&gt; Check the data you want to insert into DB.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">dataframe</span><span class="p">)</span></div>
+
+
+
+<span class="n">main_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">main_dir</span><span class="p">)</span>
+
+<span class="n">m_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="c1"># Openes connection to the DB</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Oppening connection.&#39;</span><span class="p">)</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s1">&#39;&#39;&#39;dbname=</span><span class="si">{</span><span class="n">tools</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">DB</span><span class="si">}</span>
+<span class="s1">        user=</span><span class="si">{</span><span class="n">tools</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">USER</span><span class="si">}</span>
+<span class="s1">        host=</span><span class="si">{</span><span class="n">tools</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">HOST</span><span class="si">}</span>
+<span class="s1">        port=</span><span class="si">{</span><span class="n">tools</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">PORT</span><span class="si">}</span>
+<span class="s1">    &#39;&#39;&#39;</span>
+<span class="p">)</span>
+
+<span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating DataFrame.&#39;</span><span class="p">)</span>
+<span class="n">df_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="c1"># Reads the dataframe</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">main_dir</span><span class="si">}</span><span class="s1">/data/baza.csv&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="n">thousands</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;dł_ujednolicona&#39;</span><span class="p">:</span> <span class="s1">&#39;object&#39;</span><span class="p">},</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
+<span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ind</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span> <span class="o">+</span> <span class="n">get_index_val</span><span class="p">(</span><span class="s1">&#39;ads_desc&#39;</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s1">&#39;ad_time_details&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;kod_reklamy&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;kod_reklamy&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">ind</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">df_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">df_diff</span> <span class="o">=</span> <span class="n">df_end</span> <span class="o">-</span> <span class="n">df_start</span>
+
+<span class="c1"># Create datasets for simple tables</span>
+<span class="n">dow2</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Poniedziałek&#39;</span><span class="p">,</span> <span class="s1">&#39;Wtorek&#39;</span><span class="p">,</span> <span class="s1">&#39;Środa&#39;</span><span class="p">,</span> <span class="s1">&#39;Czwartek&#39;</span><span class="p">,</span> <span class="s1">&#39;Piątek&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Sobota&#39;</span><span class="p">,</span> <span class="s1">&#39;Niedziela&#39;</span><span class="p">]</span>
+<span class="n">months</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;Styczeń&#39;</span><span class="p">,</span> <span class="s1">&#39;Luty&#39;</span><span class="p">,</span> <span class="s1">&#39;Marzec&#39;</span><span class="p">,</span> <span class="s1">&#39;Kwiecień&#39;</span><span class="p">,</span> <span class="s1">&#39;Maj&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Czerwiec&#39;</span><span class="p">,</span> <span class="s1">&#39;Lipiec&#39;</span><span class="p">,</span> <span class="s1">&#39;Sierpień&#39;</span><span class="p">,</span> <span class="s1">&#39;Wrzesień&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Październik&#39;</span><span class="p">,</span> <span class="s1">&#39;Listopad&#39;</span><span class="p">,</span> <span class="s1">&#39;Grudzień&#39;</span>
+<span class="p">]</span>
+<span class="n">dates</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">brands</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;brand&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">lengths</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;dł_ujednolicona&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">dayparts</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;daypart&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">product_types</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;produkt(4)&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">broadcasters</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;wydawca_nadawca&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">reaches</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;zasięg medium&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+<span class="n">data_set</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">dow2</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;pl_dow_names&#39;</span><span class="p">,</span> <span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="s1">&#39;dow_name&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">months</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;pl_month_names&#39;</span><span class="p">,</span> <span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="s1">&#39;month_name&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">dates</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;date_time&#39;</span><span class="p">,</span> <span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="s1">&#39;date&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">brands</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;brands&#39;</span><span class="p">,</span> <span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="s1">&#39;brand&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">lengths</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;unified_lengths&#39;</span><span class="p">,</span> <span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="s1">&#39;length&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">dayparts</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;dayparts&#39;</span><span class="p">,</span> <span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="s1">&#39;daypart&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">product_types</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;product_types&#39;</span><span class="p">,</span> <span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="s1">&#39;product_type&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">broadcasters</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;broadcasters&#39;</span><span class="p">,</span> <span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="s1">&#39;broadcaster&#39;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">reaches</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;ad_reach&#39;</span><span class="p">,</span> <span class="s1">&#39;field&#39;</span><span class="p">:</span> <span class="s1">&#39;reach&#39;</span><span class="p">},</span>
+            <span class="p">]</span>
+
+<span class="n">avoid_adding</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pl_dow_names&#39;</span><span class="p">,</span> <span class="s1">&#39;pl_month_names&#39;</span><span class="p">,</span> <span class="s1">&#39;dayparts&#39;</span><span class="p">,</span> <span class="s1">&#39;ad_reach&#39;</span><span class="p">]</span>
+
+
+<span class="c1"># Inserting data into simple tables</span>
+<span class="n">ones_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Inserting data to one input tables.&#39;</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">iter_over_inputs</span><span class="p">(</span><span class="n">data_set</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">OperationalError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to input the data.&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ones_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">ones_diff</span> <span class="o">=</span> <span class="n">ones_end</span> <span class="o">-</span> <span class="n">ones_start</span>
+
+<span class="c1"># Create and insert data into mediums table</span>
+<span class="n">three_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Inserting data to the three input table.&#39;</span><span class="p">)</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="n">get_colum_names</span><span class="p">(</span><span class="s1">&#39;mediums&#39;</span><span class="p">)</span>
+<span class="n">trigger</span><span class="p">,</span> <span class="n">submediums</span> <span class="o">=</span> <span class="n">get_id_for_submediums</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="s1">&#39;mediums&#39;</span><span class="p">)</span>
+<span class="n">data_set2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">submediums</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;mediums&#39;</span><span class="p">,</span> <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="n">fields</span><span class="p">}</span>
+<span class="k">if</span> <span class="n">trigger</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">add_3_fields</span><span class="p">(</span><span class="n">data_set2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">OperationalError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to input the data.&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">three_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">three_diff</span> <span class="o">=</span> <span class="n">three_end</span> <span class="o">-</span> <span class="n">three_start</span>
+
+<span class="c1"># Create and insert data into ad_time_details table</span>
+<span class="n">eight_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Inserting data to the eight input table.&#39;</span><span class="p">)</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="n">get_colum_names</span><span class="p">(</span><span class="s1">&#39;ad_time_details&#39;</span><span class="p">)</span>
+<span class="n">trigger</span><span class="p">,</span> <span class="n">ad_time</span> <span class="o">=</span> <span class="n">get_id_for_ad_time</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="s1">&#39;ad_time_details&#39;</span><span class="p">)</span>
+<span class="n">data_set3</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">ad_time</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;ad_time_details&#39;</span><span class="p">,</span> <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="n">fields</span><span class="p">}</span>
+<span class="k">if</span> <span class="n">trigger</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">add_8_fields</span><span class="p">(</span><span class="n">data_set3</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">OperationalError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to input the data.&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">eight_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">eight_diff</span> <span class="o">=</span> <span class="n">eight_end</span> <span class="o">-</span> <span class="n">eight_start</span>
+
+<span class="c1"># Create and insert data into ad_time_details table</span>
+<span class="n">ten_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Inserting data to the ten input table.&#39;</span><span class="p">)</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="n">get_colum_names</span><span class="p">(</span><span class="s1">&#39;ads_desc&#39;</span><span class="p">)</span>
+<span class="n">trigger</span><span class="p">,</span> <span class="n">ads_desc</span> <span class="o">=</span> <span class="n">get_id_for_ads_desc</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="s1">&#39;ads_desc&#39;</span><span class="p">)</span>
+<span class="n">data_set4</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">ads_desc</span><span class="p">,</span> <span class="s1">&#39;table&#39;</span><span class="p">:</span> <span class="s1">&#39;ads_desc&#39;</span><span class="p">,</span> <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="n">fields</span><span class="p">}</span>
+<span class="k">if</span> <span class="n">trigger</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">add_10_fields</span><span class="p">(</span><span class="n">data_set4</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">psycopg</span><span class="o">.</span><span class="n">OperationalError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to input the data.&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">ten_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">ten_diff</span> <span class="o">=</span> <span class="n">ten_end</span> <span class="o">-</span> <span class="n">ten_start</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Closing connection.&#39;</span><span class="p">)</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">m_end</span> <span class="o">=</span>  <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">m_diff</span> <span class="o">=</span> <span class="n">m_end</span> <span class="o">-</span> <span class="n">m_start</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Program has finished.&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Total time           : </span><span class="si">{</span><span class="n">m_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span>
+<span class="s2">DF creation          : </span><span class="si">{</span><span class="n">df_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span>
+<span class="s2">Ones processing time : </span><span class="si">{</span><span class="n">ones_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span>
+<span class="s2">Three processing time: </span><span class="si">{</span><span class="n">three_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span>
+<span class="s2">Eight processing time: </span><span class="si">{</span><span class="n">eight_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span>
+<span class="s2">Ten processing time  : </span><span class="si">{</span><span class="n">ten_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Marcin Borowski.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

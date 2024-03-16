@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>populate module &mdash; Radio ads PostgreSQL DB 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="test module" href="test.html" />
+    <link rel="prev" title="cs50sql_fin" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Radio ads PostgreSQL DB
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">cs50sql_fin</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">populate module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#populate.add_10_fields"><code class="docutils literal notranslate"><span class="pre">add_10_fields()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.add_1_field"><code class="docutils literal notranslate"><span class="pre">add_1_field()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.add_3_fields"><code class="docutils literal notranslate"><span class="pre">add_3_fields()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.add_8_fields"><code class="docutils literal notranslate"><span class="pre">add_8_fields()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.check_for_data_1_field"><code class="docutils literal notranslate"><span class="pre">check_for_data_1_field()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.check_for_data_3_fields"><code class="docutils literal notranslate"><span class="pre">check_for_data_3_fields()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.get_colum_names"><code class="docutils literal notranslate"><span class="pre">get_colum_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.get_id_for_ad_time"><code class="docutils literal notranslate"><span class="pre">get_id_for_ad_time()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.get_id_for_ads_desc"><code class="docutils literal notranslate"><span class="pre">get_id_for_ads_desc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.get_id_for_submediums"><code class="docutils literal notranslate"><span class="pre">get_id_for_submediums()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.get_index_val"><code class="docutils literal notranslate"><span class="pre">get_index_val()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.get_min_max_date"><code class="docutils literal notranslate"><span class="pre">get_min_max_date()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#populate.iter_over_inputs"><code class="docutils literal notranslate"><span class="pre">iter_over_inputs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="test.html">test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.html">tools package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Radio ads PostgreSQL DB</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">cs50sql_fin</a></li>
+      <li class="breadcrumb-item active">populate module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/populate.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-populate">
+<span id="populate-module"></span><h1>populate module<a class="headerlink" href="#module-populate" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.add_10_fields">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">add_10_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_set</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/populate.html#add_10_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.add_10_fields" title="Link to this definition"></a></dt>
+<dd><p>Function adding data into ad_time_details table, which consists of 10 columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_set</strong> – A dict contaning data to be added, table name, and field / column name.</p>
+</dd>
+</dl>
+<p>Data is a Pandas DataFrame, table name and field name are both strings.
+:raise KeyError: If key name does not match the pattern
+:raise psycopg.DataError: If table or field names doesn’t match those in the DB
+:return: None</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.add_1_field">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">add_1_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/populate.html#add_1_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.add_1_field" title="Link to this definition"></a></dt>
+<dd><p>Skeleton function for adding data to single column tables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – List of strings or integers representing table contents</p></li>
+<li><p><strong>table_name</strong> – String reprexsenting name of the table into which data is going to be added</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>psycopg.DataError</strong> – If data type does not match table restrictions</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.add_3_fields">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">add_3_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_set</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/populate.html#add_3_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.add_3_fields" title="Link to this definition"></a></dt>
+<dd><p>Function adding data into mediums table, which consists of 3 columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_set</strong> – A dict contaning data to be added, table name, and field / column name.</p>
+</dd>
+</dl>
+<p>Data is a Pandas DataFrame, table name and field name are both strings.
+:raise KeyError: If key name does not match the pattern
+:raise psycopg.DataError: If table or field names doesn’t match those in the DB
+:return: None</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.add_8_fields">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">add_8_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_set</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/populate.html#add_8_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.add_8_fields" title="Link to this definition"></a></dt>
+<dd><p>Function adding data into ad_time_details table, which consists of 8 columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_set</strong> – A dict contaning data to be added, table name, and field / column name.</p>
+</dd>
+</dl>
+<p>Data is a Pandas DataFrame, table name and field name are both strings.
+:raise KeyError: If key name does not match the pattern
+:raise psycopg.DataError: If table or field names doesn’t match those in the DB
+:return: None</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.check_for_data_1_field">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">check_for_data_1_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/populate.html#check_for_data_1_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.check_for_data_1_field" title="Link to this definition"></a></dt>
+<dd><p>Skeleton function for checking if there is data inside each of one column tables.
+Ads data if there are any new entries, skips if no new data was found. 
+If DB is empty returns immediately.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – List containing data to be checked and added. Data is of str or int types.</p></li>
+<li><p><strong>table_name</strong> – String representing name of the table into which data is going to be added</p></li>
+<li><p><strong>field_name</strong> – String representing name of the field/ column name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>psycopg.DataError</strong> – If data type does not match table restrictions</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing bool for logic purposes, anbd the data set to be added</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[bool, list[str/int]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.check_for_data_3_fields">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">check_for_data_3_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submediums</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/populate.html#check_for_data_3_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.check_for_data_3_fields" title="Link to this definition"></a></dt>
+<dd><p>Returns a bool for logic purposes and data to be added into mediums table.
+If DB is empty returns original DF. During data update process returns the data not present in the DB
+or indicates there is nothing to be added.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fields</strong> – A list containing field / column names represented as a str</p></li>
+<li><p><strong>table_name</strong> – Name of the table into which data is going to be added as a str</p></li>
+<li><p><strong>submediums</strong> – Pandas DataFrame containing data to add.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>psycopg.DataError</strong> – If data type does not match table restrictions</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple containing bool for logic purposes and a Pandas DataFrame</p>
+</dd>
+</dl>
+<p>as data to be added into the DB during the update
+:rtype: tuple[bool, pd.DataFrame]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.get_colum_names">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">get_colum_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/populate.html#get_colum_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.get_colum_names" title="Link to this definition"></a></dt>
+<dd><p>A function which returns the names of selected table from the DB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>psycopg.DatabaseError</strong> – If column names does not match DB contents</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List containing all the column names present in selected table.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.get_id_for_ad_time">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">get_id_for_ad_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/populate.html#get_id_for_ad_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.get_id_for_ad_time" title="Link to this definition"></a></dt>
+<dd><p>Gets IDs from reference tables to ad_time_details table. 
+Mainly connects time details of singular ad emission with other tables containing details via IDs.
+This function populates one of two core tables in this DB.
+Returns a bool for logic purposes and data to be added into mediums.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fields</strong> – A list containing field / column names represented as a str</p></li>
+<li><p><strong>table</strong> – Name of the table out of which the data is going to be pulled,</p></li>
+</ul>
+</dd>
+</dl>
+<p>represented as a str
+:raise psycopg.DataError: If data type does not match table restrictions
+:return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+as data to be added into the DB during the update or initial DB fill.
+:rtype: tuple[bool, pd.DataFrame]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.get_id_for_ads_desc">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">get_id_for_ads_desc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/populate.html#get_id_for_ads_desc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.get_id_for_ads_desc" title="Link to this definition"></a></dt>
+<dd><p>Gets IDs from reference tables to ads_desc table. 
+Mainly connects other tables and data of singular ad emission via IDs with other tables.
+This function populates one of two core tables in this DB.
+Returns a bool for logic purposes and data to be added into mediums.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fields</strong> – A list containing field / column names represented as a str</p></li>
+<li><p><strong>table</strong> – Name of the table out of which the data is going to be pulled,</p></li>
+</ul>
+</dd>
+</dl>
+<p>represented as a str
+:raise psycopg.DataError: If data type does not match table restrictions
+:return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+as data to be added into the DB during the update or initial DB fill.
+:rtype: tuple[bool, pd.DataFrame]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.get_id_for_submediums">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">get_id_for_submediums</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/populate.html#get_id_for_submediums"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.get_id_for_submediums" title="Link to this definition"></a></dt>
+<dd><p>Gets IDs from reference tables to mediums table. 
+Mainly connects submediums with broadcaster and reach tables.
+Returns a bool for logic purposes and data to be added into mediums.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fields</strong> – A list containing field / column names represented as a str</p></li>
+<li><p><strong>table</strong> – Name of the table out of which the data is going to be pulled,</p></li>
+</ul>
+</dd>
+</dl>
+<p>represented as a str
+:raise psycopg.DataError: If data type does not match table restrictions
+:return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+as data to be added into the DB during the update or initial DB fill.
+:rtype: tuple[bool, pd.DataFrame]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.get_index_val">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">get_index_val</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/populate.html#get_index_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.get_index_val" title="Link to this definition"></a></dt>
+<dd><p>Function gets max index value from the selected table and returns it as an integer increased by one.
+When the table is empty, returns 1</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>table_name</strong> – Name of the table out of which the data is going to be pulled,</p>
+</dd>
+</dl>
+<p>represented as a str
+:raise psycopg.DataError: If data type does not match table restrictions
+:return: number representiung max index value of selected table icreased by 1
+:rtype: int</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.get_min_max_date">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">get_min_max_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/populate.html#get_min_max_date"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.get_min_max_date" title="Link to this definition"></a></dt>
+<dd><p>Gets max and min dates from selected table. Then checks if dates present in the DF passed as a parameter
+are outside of dates range. If so, allows data insertion into the DB, if not it informs the user, 
+and proceedes with the rest of the code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fields</strong> – A list containing field / column names represented as a str</p></li>
+<li><p><strong>table</strong> – Name of the table out of which the data is going to be pulled,</p></li>
+</ul>
+</dd>
+</dl>
+<p>represented as a str
+:param dataframe: Pandas DataFrame with the new data to be checked if not present in selected table
+:raise psycopg.DatabaseError: If column names does not match DB contents
+:return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+as data to be added into the DB during the update or initial DB fill.
+:rtype: tuple[bool, pd.DataFrame]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="populate.iter_over_inputs">
+<span class="sig-prename descclassname"><span class="pre">populate.</span></span><span class="sig-name descname"><span class="pre">iter_over_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_set</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/populate.html#iter_over_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#populate.iter_over_inputs" title="Link to this definition"></a></dt>
+<dd><p>Main loop for iteration over one column tables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_set</strong> – List containing dicts with data, table name and field/column name.</p>
+</dd>
+</dl>
+<p>List contains strings or integers representing the data to be added into selected tables.
+:param table_name: String representing name of the table into which data is going to be added
+:raise KeyError: If key name does not match the pattern
+:return: None</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="cs50sql_fin" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="test.html" class="btn btn-neutral float-right" title="test module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Marcin Borowski.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
