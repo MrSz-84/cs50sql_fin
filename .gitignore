@@ -2,4 +2,5 @@ sample-project/
 data/
 tools/__pycache__/
 docs/
+__pycache__/
 .pyc
