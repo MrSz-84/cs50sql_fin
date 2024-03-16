@@ -5,6 +5,8 @@ By Marcin Borowski
 
 Video overview: [presentation](https://youtu.be/hTN8ylNZLOo)
 
+GitHub repo: [repository](https://github.com/MrSz-84/cs50sql_fin)
+
 <br>
 
 ## Scope
