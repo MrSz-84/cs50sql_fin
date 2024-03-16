@@ -4,6 +4,8 @@ from psycopg import sql
 import pandas as pd
 import numpy as np
 import time
+import os
+import sys
 
 
 def add_1_field(data:list, table_name:str, field_name: str)-> None:
@@ -510,6 +512,9 @@ def get_min_max_date(fields: list[str], table_: str, dataframe: pd.DataFrame)-> 
         return (False, dataframe)
 
 
+main_dir = os.path.split(os.path.abspath(__file__))[0]
+sys.path.append(main_dir)
+
 m_start = time.time()
 # Openes connection to the DB
 print('Oppening connection.')
@@ -526,7 +531,7 @@ cur = conn.cursor()
 print('Creating DataFrame.')
 df_start = time.time()
 # Reads the dataframe
-df = pd.read_csv('./data/baza2.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8', parse_dates=['data'])
+df = pd.read_csv(f'{main_dir}/data/baza.csv', delimiter=';', thousands=',', dtype={'dł_ujednolicona': 'object'}, encoding='utf-8', parse_dates=['data'])
 df.sort_values(by='data', axis=0, inplace=True)
 df.reset_index(inplace=True)
 df.drop('index', axis=1, inplace=True)
