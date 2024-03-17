@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS "nadawcy" (
 
 -- References reach of given radio station for mediums table.
 CREATE TABLE IF NOT EXISTS "zasiegi" (
-    "id" SERIAL,
+    "id" INTEGER,
     "zasieg" TEXT NOT NULL UNIQUE CHECK(
         "zasieg" IN (
             'krajowe',
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS "dayparty" (
         "daypart" IN (
             'do 9',
             'od 9 do 16',
-            'po 16',
+            'po 16'
         )
     ),
     PRIMARY KEY("id")
@@ -168,7 +168,7 @@ CREATE TABLE IF NOT EXISTS "spoty" (
     "typ" TEXT NOT NULL DEFAULT 'reklama',
     PRIMARY KEY("id"),
     FOREIGN KEY("brand_id") REFERENCES "brands"("id"),
-    FOREIGN KEY("submedium_id") REFERENCES "submedia"("id"),
+    FOREIGN KEY("sumbedium_id") REFERENCES "submedia"("id"),
     FOREIGN KEY("czas_reklamy_id") REFERENCES "czasy_reklam"("id"),
     FOREIGN KEY("typ_produktu_id") REFERENCES "typy_produktu"("id"),
     FOREIGN KEY("data") REFERENCES "data_czas"("data")
