@@ -1,134 +1,156 @@
--- TYPES SECTION --
 
--- Create ENUM type for pl dow names.
-CREATE TYPE "pl_dow" AS ENUM('Poniedziałek', 'Wtorek', 'Środa',
-    'Czwartek', 'Piątek', 'Sobota', 'Niedziela'
-);
-
--- Create Enum type for pl month names.
-CREATE TYPE "pl_month" AS ENUM('Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 
-    'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 
-    'Listopad', 'Grudzień'
-);
-
--- Create ad_brands ENUM type for brands table.
-CREATE TYPE "ad_brand" AS ENUM('EURO APPLIANCES', 'MEDIA MASTER', 
-'MEDIA SHOP', 'NEWNET');
-
--- Creates ENUM type for reach types table.
-CREATE TYPE "reach_type" AS ENUM('krajowe', 'miejskie', 
-'ponadregionalne', 'regionalne');
-
--- Creates ENUM type for dayparts table
-CREATE TYPE "daypart_type" AS ENUM('do 9', 'od 9 do 16', 'po 16');
-
--- Creates ENUM type for unified lengths table.
-CREATE TYPE "length_type" AS ENUM('15', '20', '30', '45', '60');
-
--- Creates ENUM type for product types table.
-CREATE TYPE "products" AS ENUM('AGD, RTV, ELEKTRONIKA, FOTOGRAFIA, KOMPUTERY',
-'GRUPA', 'OGŁOSZENIA O PRACY');
+    -- CREATE TABLE t(x INTEGER PRIMARY KEY ASC, y, z);
+    -- CREATE TABLE t(x INTEGER, y, z, PRIMARY KEY(x ASC));
+    -- CREATE TABLE t(x INTEGER, y, z, PRIMARY KEY(x DESC)); 
 
 
 -- TABLES SECTION --
 
 -- Table injecting Polish day of week names into the date_time table.
-CREATE TABLE IF NOT EXISTS "pl_dow_names" (
-    "id" SERIAL,
-    "dow_name" "pl_dow" NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS "dni_tyg" (
+    "id" INTEGER,
+    "dzien_tyg" TEXT NOT NULL UNIQUE CHECK(
+        "dzien_tyg" IN (
+            'Poniedziałek', 'Wtorek', 'Środa', 
+            'Czwartek', 'Piątek', 'Sobota', 'Niedziela'
+        )
+    ),
     PRIMARY KEY("id")
-);
+) STRICT;
 
--- Table injecting Piolish month names into the date_time table.
-CREATE TABLE IF NOT EXISTS "pl_month_names" (
-    "id" SERIAL,
-    "month_name" "pl_month" NOT NULL UNIQUE,
+-- Table injecting Polish month names into the date_time table.
+CREATE TABLE IF NOT EXISTS "miesiace" (
+    "id" INTEGER,
+    "miesiac" TEXT NOT NULL UNIQUE CHECK(
+        "miesiac" IN (
+            'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj',
+            'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień',
+            'Październik', 'Listopad', 'Grudzień'
+        )
+    ),
     PRIMARY KEY("id")
-);
+) STRICT;
 
 -- Create date tables for further filtration and aggregation of data.
 -- This table is going to be related to by few others to guarantee e.g. valid joining.
-CREATE TABLE IF NOT EXISTS "date_time" (
-    "id" SERIAL,
-    "date" DATE NOT NULL UNIQUE,
-    "day" SMALLINT CHECK("day" BETWEEN 1 AND 31),
-    "day_of_week" SMALLINT CHECK("day_of_week" BETWEEN 1 AND 7),
-    "week" SMALLINT CHECK("week" BETWEEN 1 AND 53),
-    "year" SMALLINT CHECK("year" BETWEEN 1900 AND 9999),
-    "month" SMALLINT CHECK("month" BETWEEN 1 AND 12),
+CREATE TABLE IF NOT EXISTS "data_czas" (
+    "id" INTEGER,
+    "data" TEXT NOT NULL UNIQUE,
+    "dzien" INTEGER CHECK("dzien" BETWEEN 1 AND 31),
+    "dzien_tyg_nr" INTEGER CHECK("dzien_tyg_nr" BETWEEN 1 AND 7),
+    "tydzien" INTEGER CHECK("tydzien" BETWEEN 1 AND 53),
+    "miesiac_nr" INTEGER CHECK("miesiac_nr" BETWEEN 1 AND 12),
+    "rok" INTEGER CHECK("rok" BETWEEN 1900 AND 9999),
     PRIMARY KEY("id"),
-    FOREIGN KEY("day_of_week") REFERENCES "pl_dow_names"("id"),
-    FOREIGN KEY("month") REFERENCES "pl_month_names"("id")
-);
+    FOREIGN KEY("dzien_tyg_nr") REFERENCES "dni_tyg"("id"),
+    FOREIGN KEY("miesiac_nr") REFERENCES "miesiace"("id")
+) STRICT;
 
 -- Create brands table
-CREATE TABLE IF NOT EXISTS "brands" (
-    "id" SERIAL,
-    "brand" "ad_brand" NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS "brandy" (
+    "id" INTEGER,
+    "brand" TEXT NOT NULL UNIQUE CHECK(
+        "brand" IN (
+            'EURO RTV AGD',
+            'MEDIA EXPERT',
+            'MEDIA MARKT',
+            'MYCENTER',
+            'NEONET AGD RTV'
+        )
+    ),
     PRIMARY KEY("id")
-);
+) STRICT;
 
 -- References brodcasters name for mediums table.
-CREATE TABLE IF NOT EXISTS "broadcasters" (
-    "id" SERIAL,
-    "broadcaster" VARCHAR(50) NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS "nadawcy" (
+    "id" INTEGER,
+    "nadawca" TEXT NOT NULL UNIQUE,
     PRIMARY KEY("id")
-);
+) STRICT;
 
 -- References reach of given radio station for mediums table.
-CREATE TABLE IF NOT EXISTS "ad_reach" (
+CREATE TABLE IF NOT EXISTS "zasiegi" (
     "id" SERIAL,
-    "reach" "reach_type" NOT NULL UNIQUE,
+    "zasieg" TEXT NOT NULL UNIQUE CHECK(
+        "zasieg" IN (
+            'krajowe',
+            'miejskie',
+            'ponadregionalne',
+            'regionalne'
+        )
+    ),
     PRIMARY KEY("id")
-);
+) STRICT;
 
 -- Crteates table containing radiostactions, their parent entity (broadcaster),
 -- and the reach of each medium.
-CREATE TABLE IF NOT EXISTS "mediums" (
-    "id" SERIAL,
-    "submedium" VARCHAR(50) NOT NULL UNIQUE,
-    "broadcaster_id" SMALLINT NOT NULL,
-    "ad_reach_id" SMALLINT NOT NULL,
+CREATE TABLE IF NOT EXISTS "submedia" (
+    "id" INTEGER,
+    "submedium" TEXT NOT NULL UNIQUE,
+    "nadawca_id" INTEGER NOT NULL,
+    "zasieg_id" INTEGER NOT NULL,
     PRIMARY KEY("id"),
-    FOREIGN KEY("broadcaster_id") REFERENCES "broadcasters"("id"),
-    FOREIGN KEY("ad_reach_id") REFERENCES "ad_reach"("id")
-);
+    FOREIGN KEY("nadawca_id") REFERENCES "nadawcy"("id"),
+    FOREIGN KEY("zasieg_id") REFERENCES "zasiegi"("id")
+) STRICT;
 
 -- Creates table for dayparts references.
-CREATE TABLE IF NOT EXISTS "dayparts" (
-    "id" SERIAL,
-    "daypart" "daypart_type" NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS "dayparty" (
+    "id" INTEGER,
+    "daypart" TEXT NOT NULL UNIQUE CHECK(
+        "daypart" IN (
+            'do 9',
+            'od 9 do 16',
+            'po 16',
+        )
+    ),
     PRIMARY KEY("id")
-);
+) STRICT;
 
 -- Creates table for unified advertisemens lenght references.
-CREATE TABLE IF NOT EXISTS "unified_lengths" (
-    "id" SERIAL,
-    "length" "length_type" NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS "dl_ujednolicone" (
+    "id" INTEGER,
+    "dl_ujednolicona" INTEGER NOT NULL UNIQUE CHECK(
+        "dl_ujednolicona" IN (
+            10,
+            15,
+            20,
+            30,
+            45,
+            60
+        )
+    ),
     PRIMARY KEY("id")
-);
+) STRICT;
 
-CREATE TABLE IF NOT EXISTS "ad_time_details" (
-    "id" SERIAL,
-    "date" DATE NOT NULL,
-    "ad_slot_hour" VARCHAR(11) NOT NULL,
-    "gg" SMALLINT NOT NULL,
-    "mm" SMALLINT NOT NULL,
-    "length_mod" SMALLINT NOT NULL,
-    "daypart_id" SMALLINT NOT NULL,
-    "unified_length_id" SMALLINT NOT NULL,
-    "ad_code" VARCHAR(80) NOT NULL,
+CREATE TABLE IF NOT EXISTS "czasy_reklam" (
+    "id" INTEGER,
+    "data" TEXT NOT NULL,
+    "godz_bloku_rek" TEXT NOT NULL,
+    "gg" INTEGER NOT NULL,
+    "mm" INTEGER NOT NULL,
+    "dlugosc" INTEGER NOT NULL,
+    "daypart_id" INTEGER NOT NULL,
+    "dl_ujednolicona_id" INTEGER NOT NULL,
+    "kod_rek" TEXT NOT NULL,
     PRIMARY KEY("id"),
-    FOREIGN KEY("daypart_id") REFERENCES "dayparts"("id"),
-    FOREIGN KEY("unified_length_id") REFERENCES "unified_lengths"("id")
-);
+    FOREIGN KEY("daypart_id") REFERENCES "dayparty"("id"),
+    FOREIGN KEY("dl_ujednolicona_id") REFERENCES "dl_ujednolicone"("id")
+) STRICT;
 
 -- Creates pprodyct type references for ads_desc table.
-CREATE TABLE IF NOT EXISTS "product_types" (
-    "id" SERIAL,
-    "product_type" "products" NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS "typy_produktu" (
+    "id" INTEGER,
+    "typ_produktu" TEXT NOT NULL UNIQUE CHECK(
+        "typ_produktu" IN (
+            'AGD, RTV, ELEKTRONIKA, FOTOGRAFIA, KOMPUTERY',
+            'GRUPA',
+            'OGŁOSZENIA O PRACY',
+            'TARGI'
+        )
+    ),
     PRIMARY KEY("id")
-);
+) STRICT;
 
 -- Create main table with ads emitted through radio estations across country. 
 -- This is the table which holds all the data, and to which other tables point.
