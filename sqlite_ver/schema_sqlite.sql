@@ -1,9 +1,3 @@
-
-    -- CREATE TABLE t(x INTEGER PRIMARY KEY ASC, y, z);
-    -- CREATE TABLE t(x INTEGER, y, z, PRIMARY KEY(x ASC));
-    -- CREATE TABLE t(x INTEGER, y, z, PRIMARY KEY(x DESC)); 
-
-
 -- TABLES SECTION --
 
 -- Table injecting Polish day of week names into the date_time table.
@@ -179,118 +173,72 @@ CREATE TABLE IF NOT EXISTS "spoty" (
 
 -- FUNCTIONS SECTION--
 
--- Creates function for extracting day from date column. Used by the populate_day trigger.
--- CREATE OR REPLACE FUNCTION extract_day()
---     RETURNS TRIGGER
---     LANGUAGE plpgsql
---     AS
--- $$
--- BEGIN
---     IF NEW."day" IS NULL THEN
---         UPDATE "date_time" SET "day" = EXTRACT(DAY FROM NEW."date")
---         WHERE "id" = NEW."id";
---     END IF;
---     RETURN NULL;
--- END;
--- $$;
+-- TRIGGERS SECTION --
+-- Populates day column after date insertion.
+CREATE TRIGGER IF NOT EXISTS "populate_dzien"
+AFTER INSERT ON "data_czas"
+FOR EACH ROW
+BEGIN
+    UPDATE "data_czas" 
+    SET "dzien" = CASE 
+        WHEN NEW."dzien" IS NULL THEN strftime('%e', date(NEW."data")) 
+        ELSE NEW."dzien" 
+    END 
+    WHERE "id" = NEW."id";
+END;
 
--- -- Creates function for extracting day from date column. Used by the populate_dow trigger.
--- CREATE OR REPLACE FUNCTION extract_dow()
---     RETURNS TRIGGER
---     LANGUAGE plpgsql
---     AS
--- $$
--- BEGIN
---     IF NEW."day_of_week" IS NULL THEN
---         UPDATE "date_time" SET "day_of_week" = EXTRACT(ISODOW FROM NEW."date")
---         WHERE "id" = NEW."id";
---     END IF;
---     RETURN NULL;
--- END;
--- $$;
+-- Populates dow column after date insertion.
+CREATE TRIGGER IF NOT EXISTS "populate_dzien_tyg"
+AFTER INSERT ON "data_czas"
+FOR EACH ROW
+BEGIN
+    UPDATE "data_czas" 
+    SET "dzien_tyg_nr" = CASE
+        WHEN NEW."dzien_tyg_nr" IS NULL THEN strftime('%u', date(NEW."data"))
+        ELSE NEW."dzien_tyg_nr"
+    END
+    WHERE "id" = NEW."id";
+END;
 
--- -- Creates function for extracting day from date column. Used by the populate_week trigger.
--- CREATE OR REPLACE FUNCTION extract_week()
---     RETURNS TRIGGER
---     LANGUAGE plpgsql
---     AS
--- $$
--- BEGIN
---     IF NEW."week" IS NULL THEN
---         UPDATE "date_time" SET "week" = EXTRACT(WEEK FROM NEW."date")
---         WHERE "id" = NEW."id";
---     END IF;
---     RETURN NULL;
--- END;
--- $$;
+-- Populates week column after date insertion.
+CREATE TRIGGER IF NOT EXISTS "populate_tydzien"
+AFTER INSERT ON "data_czas"
+FOR EACH ROW
+BEGIN
+    UPDATE "data_czas"
+    SET "tydzien" = CASE
+        WHEN NEW."tydzien" IS NULL THEN strftime('%W', date(NEW."data"))
+        ELSE NEW."tydzien"
+    END
+    WHERE "id" = NEW."id";
+END;
 
--- -- Creates function for extracting day from date column. Used by the populate_year trigger.
--- CREATE OR REPLACE FUNCTION extract_year()
---     RETURNS TRIGGER
---     LANGUAGE plpgsql
---     AS
--- $$
--- BEGIN
---     IF NEW."year" IS NULL THEN
---         UPDATE "date_time" SET "year" = EXTRACT(YEAR FROM NEW."date")
---         WHERE "id" = NEW."id";
---     END IF;
---     RETURN NULL;
--- END;
--- $$;
+-- Populates month column after date insertion.
+CREATE TRIGGER IF NOT EXISTS "populate_miesiac"
+AFTER INSERT ON "data_czas"
+FOR EACH ROW
+BEGIN
+    UPDATE "data_czas"
+    SET "miesiac" = CASE
+        WHEN NEW."miesiac" IS NULL THEN strftime('%m', date(NEW."data"))
+        ELSE NEW."miesiac"
+    END
+    WHERE "id" = NEW."id";
+END;
 
--- -- Creates function for extracting day from date column. Used by the populate_month trigger.
--- CREATE OR REPLACE FUNCTION extract_month()
---     RETURNS TRIGGER
---     LANGUAGE plpgsql
---     AS
--- $$
--- BEGIN
---     IF NEW."month" IS NULL THEN
---         UPDATE "date_time" SET "month" = EXTRACT(MONTH FROM NEW."date")
---         WHERE "id" = NEW."id";
---     END IF;
---     RETURN NULL;
--- END;
--- $$;
+-- Populates rok column after date insertion.
+CREATE TRIGGER IF NOT EXISTS "populate_rok"
+AFTER INSERT ON "data_czas"
+FOR EACH ROW
+BEGIN
+    UPDATE "data_czas"
+    SET "rok" = CASE
+        WHEN NEW."rok" IS NULL THEN strftime('%Y', date(NEW."data"))
+        ELSE NEW."rok"
+    END
+    WHERE "id" = NEW."id";
+END;
 
-
--- -- TRIGGERS SECTION --
-
--- -- Populates day column after date insertion.
--- CREATE TRIGGER "populate_day"
---     AFTER INSERT 
---     ON "date_time"
---     FOR EACH ROW
---     EXECUTE FUNCTION extract_day();
-
--- -- Populates dow column out after date insertion.
--- CREATE TRIGGER "populate_dow"
---     AFTER INSERT 
---     ON "date_time"
---     FOR EACH ROW
---     EXECUTE FUNCTION extract_dow();
-
--- -- Populates week column out after date insertion.
--- CREATE TRIGGER "populate_week"
---     AFTER INSERT 
---     ON "date_time"
---     FOR EACH ROW
---     EXECUTE FUNCTION extract_week();
-
--- -- Populates year column out after date insertion.
--- CREATE TRIGGER "populate_year"
---     AFTER INSERT 
---     ON "date_time"
---     FOR EACH ROW
---     EXECUTE FUNCTION extract_year();
-
--- -- Populates month column out after date insertion.
--- CREATE TRIGGER "populate_month"
---     AFTER INSERT 
---     ON "date_time"
---     FOR EACH ROW
---     EXECUTE FUNCTION extract_month();
 
 -- -- VIEWS SECTION --
 
@@ -452,28 +400,3 @@ CREATE TABLE IF NOT EXISTS "spoty" (
 
 
 
--- CREATE TRIGGER "populate_date_time"
--- AFTER INSERT ON "date_time"
--- FOR EACH ROW
--- BEGIN
---     IF NEW."day" IS NULL THEN
---         UPDATE "date_time" SET "day" = EXTRACT(DAY FROM NEW."data")
---         WHERE "id" = NEW."id"
---     END IF
---     IF NEW."day_of_week" IS NULL THEN
---         UPDATE "date_time" SET "day_of_week" = EXTRACT(ISODOW FROM NEW."date")
---         WHERE "id" = NEW."id"
---     END IF
---     IF NEW."week" IS NULL THEN
---         UPDATE "date_time" SET "week" = EXTRACT(WEEK FROM NEW."date")
---         WHERE "id" = NEW."id"
---     END IF
---     IF NEW."year" IS NULL THEN
---         UPDATE "date_time" SET "year" = EXTRACT(YEAR FROM NEW."date")
---         WHERE "id" = NEW."id"
---     END IF
---     IF NEW."month" IS NULL THEN
---         UPDATE "date_time" SET "month" = EXTRACT(MONTH FROM NEW."date")
---         WHERE "id" = NEW."id"
---     END IF
--- END;
