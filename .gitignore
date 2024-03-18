@@ -4,3 +4,4 @@ tools/__pycache__/
 docs/
 __pycache__/
 .pyc
+radio_ads.db
