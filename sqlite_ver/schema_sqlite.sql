@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS "dni_tyg" (
         )
     ),
     PRIMARY KEY("id")
-) STRICT;
+);
 
 -- Table injecting Polish month names into the date_time table.
 CREATE TABLE IF NOT EXISTS "miesiace" (
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS "miesiace" (
         )
     ),
     PRIMARY KEY("id")
-) STRICT;
+);
 
 -- Create date tables for further filtration and aggregation of data.
 -- This table is going to be related to by few others to guarantee e.g. valid joining.
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS "data_czas" (
     PRIMARY KEY("id"),
     FOREIGN KEY("dzien_tyg_nr") REFERENCES "dni_tyg"("id"),
     FOREIGN KEY("miesiac_nr") REFERENCES "miesiace"("id")
-) STRICT;
+);
 
 -- Create brands table
 CREATE TABLE IF NOT EXISTS "brandy" (
@@ -53,14 +53,14 @@ CREATE TABLE IF NOT EXISTS "brandy" (
         )
     ),
     PRIMARY KEY("id")
-) STRICT;
+);
 
 -- References brodcasters name for mediums table.
 CREATE TABLE IF NOT EXISTS "nadawcy" (
     "id" INTEGER,
     "nadawca" TEXT NOT NULL UNIQUE,
     PRIMARY KEY("id")
-) STRICT;
+);
 
 -- References reach of given radio station for mediums table.
 CREATE TABLE IF NOT EXISTS "zasiegi" (
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS "zasiegi" (
         )
     ),
     PRIMARY KEY("id")
-) STRICT;
+);
 
 -- Crteates table containing radiostactions, their parent entity (broadcaster),
 -- and the reach of each medium.
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS "submedia" (
     PRIMARY KEY("id"),
     FOREIGN KEY("nadawca_id") REFERENCES "nadawcy"("id"),
     FOREIGN KEY("zasieg_id") REFERENCES "zasiegi"("id")
-) STRICT;
+);
 
 -- Creates table for dayparts references.
 CREATE TABLE IF NOT EXISTS "dayparty" (
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS "dayparty" (
         )
     ),
     PRIMARY KEY("id")
-) STRICT;
+);
 
 -- Creates table for unified advertisemens lenght references.
 CREATE TABLE IF NOT EXISTS "dl_ujednolicone" (
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS "dl_ujednolicone" (
         )
     ),
     PRIMARY KEY("id")
-) STRICT;
+);
 
 CREATE TABLE IF NOT EXISTS "czasy_reklam" (
     "id" INTEGER,
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS "czasy_reklam" (
     PRIMARY KEY("id"),
     FOREIGN KEY("daypart_id") REFERENCES "dayparty"("id"),
     FOREIGN KEY("dl_ujednolicona_id") REFERENCES "dl_ujednolicone"("id")
-) STRICT;
+);
 
 -- Creates pprodyct type references for ads_desc table.
 CREATE TABLE IF NOT EXISTS "typy_produktu" (
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS "typy_produktu" (
         )
     ),
     PRIMARY KEY("id")
-) STRICT;
+);
 
 -- Create main table with ads emitted through radio estations across country. 
 -- This is the table which holds all the data, and to which other tables point.
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS "spoty" (
     FOREIGN KEY("czas_reklamy_id") REFERENCES "czasy_reklam"("id"),
     FOREIGN KEY("typ_produktu_id") REFERENCES "typy_produktu"("id"),
     FOREIGN KEY("data") REFERENCES "data_czas"("data")
-) STRICT;
+);
 
 
 -- PROCEDURES, FUNCTIONS, TRIGGER FUNCTIONS SECTION --
