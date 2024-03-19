@@ -97,6 +97,7 @@ def check_for_data_1_field(data_:list, table_name:str, field_name:str)-> tuple[b
             print(f'>>> Adding to {table_name}. New data found.')
             return (True, new_data)
         else:
+            print(f'>>> Not adding to {table_name}. No new data found.')
             return (False, list(''))
 
 def add_3_fields(data_set:dict[pd.DataFrame,str,list])-> None:
