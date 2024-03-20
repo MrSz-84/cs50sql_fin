@@ -31,8 +31,9 @@ CREATE TABLE IF NOT EXISTS "data_czas" (
     "id" INTEGER,
     "data" TEXT NOT NULL UNIQUE,
     "dzien" INTEGER CHECK("dzien" BETWEEN 1 AND 31),
-    "dzien_tyg_nr" INTEGER CHECK("dzien_tyg_nr" BETWEEN 1 AND 7),
-    "tydzien" INTEGER CHECK("tydzien" BETWEEN 1 AND 53),
+    "dzien_tyg_nr" INTEGER CHECK("dzien_tyg_nr" BETWEEN 0 AND 7),
+    "tydzien" INTEGER,
+    -- "tydzien" INTEGER CHECK("tydzien" BETWEEN 1 AND 53),
     "miesiac_nr" INTEGER CHECK("miesiac_nr" BETWEEN 1 AND 12),
     "rok" INTEGER CHECK("rok" BETWEEN 1900 AND 9999),
     PRIMARY KEY("id"),
@@ -104,7 +105,7 @@ CREATE TABLE IF NOT EXISTS "dayparty" (
 -- Creates table for unified advertisemens lenght references.
 CREATE TABLE IF NOT EXISTS "dl_ujednolicone" (
     "id" INTEGER,
-    "dl_ujednolicona" INTEGER NOT NULL UNIQUE CHECK(
+    "dl_ujednolicona" TEXT NOT NULL UNIQUE CHECK(
         "dl_ujednolicona" IN (
             10,
             15,
@@ -181,7 +182,7 @@ FOR EACH ROW
 BEGIN
     UPDATE "data_czas" 
     SET "dzien" = CASE 
-        WHEN NEW."dzien" IS NULL THEN strftime('%e', date(NEW."data")) 
+        WHEN NEW."dzien" IS NULL THEN strftime('%d', date(NEW."data")) 
         ELSE NEW."dzien" 
     END 
     WHERE "id" = NEW."id";
@@ -194,7 +195,11 @@ FOR EACH ROW
 BEGIN
     UPDATE "data_czas" 
     SET "dzien_tyg_nr" = CASE
-        WHEN NEW."dzien_tyg_nr" IS NULL THEN strftime('%u', date(NEW."data"))
+        WHEN NEW."dzien_tyg_nr" IS NULL THEN 
+            CASE 
+                WHEN strftime('%w', date(NEW."data")) = '0' THEN 7
+                ELSE cast(strftime('%w', date(NEW."data")) AS INTEGER )
+            END
         ELSE NEW."dzien_tyg_nr"
     END
     WHERE "id" = NEW."id";
@@ -219,9 +224,9 @@ AFTER INSERT ON "data_czas"
 FOR EACH ROW
 BEGIN
     UPDATE "data_czas"
-    SET "miesiac" = CASE
-        WHEN NEW."miesiac" IS NULL THEN strftime('%m', date(NEW."data"))
-        ELSE NEW."miesiac"
+    SET "miesiac_nr" = CASE
+        WHEN NEW."miesiac_nr" IS NULL THEN strftime('%m', date(NEW."data"))
+        ELSE NEW."miesiac_nr"
     END
     WHERE "id" = NEW."id";
 END;
