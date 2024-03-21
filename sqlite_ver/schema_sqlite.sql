@@ -182,7 +182,7 @@ FOR EACH ROW
 BEGIN
     UPDATE "data_czas" 
     SET "dzien" = CASE 
-        WHEN NEW."dzien" IS NULL THEN strftime('%d', date(NEW."data")) 
+        WHEN NEW."dzien" IS NULL THEN CAST(strftime('%d', date(NEW."data")) AS INTEGER)
         ELSE NEW."dzien" 
     END 
     WHERE "id" = NEW."id";
@@ -193,12 +193,12 @@ CREATE TRIGGER IF NOT EXISTS "populate_dzien_tyg"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
 BEGIN
-    UPDATE "data_czas" 
+    UPDATE "data_czas"
     SET "dzien_tyg_nr" = CASE
         WHEN NEW."dzien_tyg_nr" IS NULL THEN 
             CASE 
                 WHEN strftime('%w', date(NEW."data")) = '0' THEN 7
-                ELSE cast(strftime('%w', date(NEW."data")) AS INTEGER )
+                ELSE CAST(strftime('%w', date(NEW."data")) AS INTEGER)
             END
         ELSE NEW."dzien_tyg_nr"
     END
@@ -212,7 +212,7 @@ FOR EACH ROW
 BEGIN
     UPDATE "data_czas"
     SET "tydzien" = CASE
-        WHEN NEW."tydzien" IS NULL THEN strftime('%W', date(NEW."data"))
+        WHEN NEW."tydzien" IS NULL THEN CAST(strftime('%W', date(NEW."data")) AS INTEGER)
         ELSE NEW."tydzien"
     END
     WHERE "id" = NEW."id";
@@ -225,7 +225,7 @@ FOR EACH ROW
 BEGIN
     UPDATE "data_czas"
     SET "miesiac_nr" = CASE
-        WHEN NEW."miesiac_nr" IS NULL THEN strftime('%m', date(NEW."data"))
+        WHEN NEW."miesiac_nr" IS NULL THEN CAST(strftime('%m', date(NEW."data")) AS INTEGER)
         ELSE NEW."miesiac_nr"
     END
     WHERE "id" = NEW."id";
@@ -238,7 +238,7 @@ FOR EACH ROW
 BEGIN
     UPDATE "data_czas"
     SET "rok" = CASE
-        WHEN NEW."rok" IS NULL THEN strftime('%Y', date(NEW."data"))
+        WHEN NEW."rok" IS NULL THEN CAST(strftime('%Y', date(NEW."data")) AS INTEGER)
         ELSE NEW."rok"
     END
     WHERE "id" = NEW."id";
