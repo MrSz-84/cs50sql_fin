@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS "dayparty" (
 -- Creates table for unified advertisemens lenght references.
 CREATE TABLE IF NOT EXISTS "dl_ujednolicone" (
     "id" INTEGER,
-    "dl_ujednolicona" TEXT NOT NULL UNIQUE CHECK(
+    "dl_ujednolicona" INTEGER NOT NULL UNIQUE CHECK(
         "dl_ujednolicona" IN (
             10,
             15,
