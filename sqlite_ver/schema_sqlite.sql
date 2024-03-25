@@ -32,8 +32,7 @@ CREATE TABLE IF NOT EXISTS "data_czas" (
     "data" TEXT NOT NULL UNIQUE,
     "dzien" INTEGER CHECK("dzien" BETWEEN 1 AND 31),
     "dzien_tyg_nr" INTEGER CHECK("dzien_tyg_nr" BETWEEN 0 AND 7),
-    "tydzien" INTEGER,
-    -- "tydzien" INTEGER CHECK("tydzien" BETWEEN 1 AND 53),
+    "tydzien" INTEGER CHECK("tydzien" BETWEEN 0 AND 53),
     "miesiac_nr" INTEGER CHECK("miesiac_nr" BETWEEN 1 AND 12),
     "rok" INTEGER CHECK("rok" BETWEEN 1900 AND 9999),
     PRIMARY KEY("id"),
@@ -155,7 +154,7 @@ CREATE TABLE IF NOT EXISTS "spoty" (
     "opis_rek" TEXT NOT NULL,
     "kod_reklamy" INTEGER NOT NULL,
     "brand_id" INTEGER NOT NULL,
-    "sumbedium_id" INTEGER NOT NULL,
+    "submedium_id" INTEGER NOT NULL,
     "czas_reklamy_id" INTEGER NOT NULL UNIQUE,
     "typ_produktu_id" INTEGER NOT NULL,
     "koszt" INTEGER,
@@ -163,7 +162,7 @@ CREATE TABLE IF NOT EXISTS "spoty" (
     "typ" TEXT NOT NULL DEFAULT 'reklama',
     PRIMARY KEY("id"),
     FOREIGN KEY("brand_id") REFERENCES "brands"("id"),
-    FOREIGN KEY("sumbedium_id") REFERENCES "submedia"("id"),
+    FOREIGN KEY("submedium_id") REFERENCES "submedia"("id"),
     FOREIGN KEY("czas_reklamy_id") REFERENCES "czasy_reklam"("id"),
     FOREIGN KEY("typ_produktu_id") REFERENCES "typy_produktu"("id"),
     FOREIGN KEY("data") REFERENCES "data_czas"("data")
@@ -245,163 +244,880 @@ BEGIN
 END;
 
 
--- -- VIEWS SECTION --
+-- VIEWS SECTION --
 
--- -- View for all the relevant data for JOIN statements. 
--- -- User can go from there and select what they need.
--- -- Remember to use WHERE statements to filter out data.
--- -- It's also a good starting point to inporting the data to a data drame.
--- CREATE VIEW "all_ads_joined" AS
--- SELECT "date_time"."date" AS "date", "day", "day_of_week" AS "dow", "dow_name", 
--- "month", "month_name", "year", "ads_desc"."ad_code" AS "ad_code", "brand", 
--- "submedium", "broadcaster", "reach", "ad_slot_hour", "daypart", "length", 
--- "product_type", "cost", "type", "num_of_emissions" AS "quan"
--- FROM "ads_desc"
--- JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
--- JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
--- JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
--- JOIN "broadcasters" ON "broadcasters"."id" = "mediums"."broadcaster_id"
--- JOIN "ad_reach" ON "ad_reach"."id" = "mediums"."ad_reach_id"
--- JOIN "ad_time_details" ON "ad_time_details"."id" = "ads_desc"."ad_time_details_id"
--- JOIN "dayparts" ON "dayparts"."id" = "ad_time_details"."daypart_id"
--- JOIN "unified_lengths" ON "unified_lengths"."id" = "ad_time_details"."unified_length_id"
--- JOIN "product_types" ON "product_types"."id" = "ads_desc"."product_type_id"
--- JOIN "pl_dow_names" ON "pl_dow_names"."id" = "date_time"."day_of_week"
--- JOIN "pl_month_names" ON "pl_month_names"."id" = "date_time"."month";
+-- View for all the relevant data for JOIN statements. 
+-- User can go from there and select what they need.
+-- Remember to use WHERE statements to filter out data.
+-- It's also a good starting point to inporting the data to a data drame.
+CREATE VIEW IF NOT EXISTS "reklamy_all" AS
+SELECT "data_czas"."data" AS "data", "dzien", "dzien_tyg_nr" AS 'd_tyg_nr', "dzien_tyg", 
+"tydzien", "miesiac_nr" AS "m_nr", "miesiac", "rok", "spoty"."kod_reklamy" AS "kod_reklamy", "brand", 
+"submedium", "nadawca", "zasieg", "godz_bloku_rek" AS "godz_bloku", "daypart", 
+"dl_ujednolicona" AS "dl_spotu", "typ_produktu", "koszt", "typ", "l_emisji" AS "ilosc"
+FROM "spoty"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "nadawcy" ON "nadawcy"."id" = "submedia"."nadawca_id"
+JOIN "zasiegi" ON "zasiegi"."id" = "submedia"."zasieg_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dl_ujednolicone" ON "dl_ujednolicone"."id" = "czasy_reklam"."dl_ujednolicona_id"
+JOIN "typy_produktu" ON "typy_produktu"."id" = "spoty"."typ_produktu_id"
+JOIN "dni_tyg" ON "dni_tyg"."id" = "data_czas"."dzien_tyg_nr"
+JOIN "miesiace" ON "miesiace"."id" = "data_czas"."miesiac_nr";
 
--- -- View of number of spost per day per brand, per medium. For filtering use for instance:
--- -- SELECT * FROM spots_per_day_2023
--- -- WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 10
--- CREATE VIEW "spots_per_day_2023" AS
--- SELECT "submedium", "brand", "month",
---     SUM(CASE WHEN "day" = 1 THEN "num_of_emissions" ELSE 0 END) AS "1",
---     SUM(CASE WHEN "day" = 2 THEN "num_of_emissions" ELSE 0 END) AS "2",
---     SUM(CASE WHEN "day" = 3 THEN "num_of_emissions" ELSE 0 END) AS "3",
---     SUM(CASE WHEN "day" = 4 THEN "num_of_emissions" ELSE 0 END) AS "4",
---     SUM(CASE WHEN "day" = 5 THEN "num_of_emissions" ELSE 0 END) AS "5",
---     SUM(CASE WHEN "day" = 6 THEN "num_of_emissions" ELSE 0 END) AS "6",
---     SUM(CASE WHEN "day" = 7 THEN "num_of_emissions" ELSE 0 END) AS "7",
---     SUM(CASE WHEN "day" = 8 THEN "num_of_emissions" ELSE 0 END) AS "8",
---     SUM(CASE WHEN "day" = 9 THEN "num_of_emissions" ELSE 0 END) AS "9",
---     SUM(CASE WHEN "day" = 10 THEN "num_of_emissions" ELSE 0 END) AS "10",
---     SUM(CASE WHEN "day" = 11 THEN "num_of_emissions" ELSE 0 END) AS "11",
---     SUM(CASE WHEN "day" = 12 THEN "num_of_emissions" ELSE 0 END) AS "12",
---     SUM(CASE WHEN "day" = 13 THEN "num_of_emissions" ELSE 0 END) AS "13",
---     SUM(CASE WHEN "day" = 14 THEN "num_of_emissions" ELSE 0 END) AS "14",
---     SUM(CASE WHEN "day" = 15 THEN "num_of_emissions" ELSE 0 END) AS "15",
---     SUM(CASE WHEN "day" = 16 THEN "num_of_emissions" ELSE 0 END) AS "16",
---     SUM(CASE WHEN "day" = 17 THEN "num_of_emissions" ELSE 0 END) AS "17",
---     SUM(CASE WHEN "day" = 18 THEN "num_of_emissions" ELSE 0 END) AS "18",
---     SUM(CASE WHEN "day" = 19 THEN "num_of_emissions" ELSE 0 END) AS "19",
---     SUM(CASE WHEN "day" = 20 THEN "num_of_emissions" ELSE 0 END) AS "20",
---     SUM(CASE WHEN "day" = 21 THEN "num_of_emissions" ELSE 0 END) AS "21",
---     SUM(CASE WHEN "day" = 22 THEN "num_of_emissions" ELSE 0 END) AS "22",
---     SUM(CASE WHEN "day" = 23 THEN "num_of_emissions" ELSE 0 END) AS "23",
---     SUM(CASE WHEN "day" = 24 THEN "num_of_emissions" ELSE 0 END) AS "24",
---     SUM(CASE WHEN "day" = 25 THEN "num_of_emissions" ELSE 0 END) AS "25",
---     SUM(CASE WHEN "day" = 26 THEN "num_of_emissions" ELSE 0 END) AS "26",
---     SUM(CASE WHEN "day" = 27 THEN "num_of_emissions" ELSE 0 END) AS "27",
---     SUM(CASE WHEN "day" = 28 THEN "num_of_emissions" ELSE 0 END) AS "28",
---     SUM(CASE WHEN "day" = 29 THEN "num_of_emissions" ELSE 0 END) AS "29",
---     SUM(CASE WHEN "day" = 30 THEN "num_of_emissions" ELSE 0 END) AS "30",
---     SUM(CASE WHEN "day" = 31 THEN "num_of_emissions" ELSE 0 END) AS "31"
--- FROM "ads_desc"
--- JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
--- JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
--- JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
--- WHERE "year" = 2023
--- GROUP BY "submedium", "brand", "month"
--- ORDER BY "submedium", "brand", "month";
+-- View of number of spost per day per brand, per medium. For filtering use for instance:
+-- SELECT * FROM "spoty_dziennie_2017"
+-- WHERE "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM') AND "miesiac_nr" = 8;
+CREATE VIEW IF NOT EXISTS "spoty_dziennie_2017" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien" = 1 THEN "brand" ELSE 0 END) AS "1",
+    COUNT(CASE WHEN "dzien" = 2 THEN "brand" ELSE 0 END) AS "2",
+    COUNT(CASE WHEN "dzien" = 3 THEN "brand" ELSE 0 END) AS "3",
+    COUNT(CASE WHEN "dzien" = 4 THEN "brand" ELSE 0 END) AS "4",
+    COUNT(CASE WHEN "dzien" = 5 THEN "brand" ELSE 0 END) AS "5",
+    COUNT(CASE WHEN "dzien" = 6 THEN "brand" ELSE 0 END) AS "6",
+    COUNT(CASE WHEN "dzien" = 7 THEN "brand" ELSE 0 END) AS "7",
+    COUNT(CASE WHEN "dzien" = 8 THEN "brand" ELSE 0 END) AS "8",
+    COUNT(CASE WHEN "dzien" = 9 THEN "brand" ELSE 0 END) AS "9",
+    COUNT(CASE WHEN "dzien" = 10 THEN "brand" ELSE 0 END) AS "10",
+    COUNT(CASE WHEN "dzien" = 11 THEN "brand" ELSE 0 END) AS "11",
+    COUNT(CASE WHEN "dzien" = 12 THEN "brand" ELSE 0 END) AS "12",
+    COUNT(CASE WHEN "dzien" = 13 THEN "brand" ELSE 0 END) AS "13",
+    COUNT(CASE WHEN "dzien" = 14 THEN "brand" ELSE 0 END) AS "14",
+    COUNT(CASE WHEN "dzien" = 15 THEN "brand" ELSE 0 END) AS "15",
+    COUNT(CASE WHEN "dzien" = 16 THEN "brand" ELSE 0 END) AS "16",
+    COUNT(CASE WHEN "dzien" = 17 THEN "brand" ELSE 0 END) AS "17",
+    COUNT(CASE WHEN "dzien" = 18 THEN "brand" ELSE 0 END) AS "18",
+    COUNT(CASE WHEN "dzien" = 19 THEN "brand" ELSE 0 END) AS "19",
+    COUNT(CASE WHEN "dzien" = 20 THEN "brand" ELSE 0 END) AS "20",
+    COUNT(CASE WHEN "dzien" = 21 THEN "brand" ELSE 0 END) AS "21",
+    COUNT(CASE WHEN "dzien" = 22 THEN "brand" ELSE 0 END) AS "22",
+    COUNT(CASE WHEN "dzien" = 23 THEN "brand" ELSE 0 END) AS "23",
+    COUNT(CASE WHEN "dzien" = 24 THEN "brand" ELSE 0 END) AS "24",
+    COUNT(CASE WHEN "dzien" = 25 THEN "brand" ELSE 0 END) AS "25",
+    COUNT(CASE WHEN "dzien" = 26 THEN "brand" ELSE 0 END) AS "26",
+    COUNT(CASE WHEN "dzien" = 27 THEN "brand" ELSE 0 END) AS "27",
+    COUNT(CASE WHEN "dzien" = 28 THEN "brand" ELSE 0 END) AS "28",
+    COUNT(CASE WHEN "dzien" = 29 THEN "brand" ELSE 0 END) AS "29",
+    COUNT(CASE WHEN "dzien" = 30 THEN "brand" ELSE 0 END) AS "30",
+    COUNT(CASE WHEN "dzien" = 31 THEN "brand" ELSE 0 END) AS "31"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2017
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
 
--- -- A view for spots per dow for band and submedium returning pivot like table. 
--- -- Filter by using:
--- -- SELECT * FROM "spots_per_dow_2023"
--- -- WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 8;
--- CREATE VIEW "spots_per_dow_2023" AS
--- SELECT "submedium", "brand", "month",
---     SUM(CASE WHEN "day_of_week" = 1 THEN "num_of_emissions" ELSE 0 END) AS mon,
---     SUM(CASE WHEN "day_of_week" = 2 THEN "num_of_emissions" ELSE 0 END) AS tue,
---     SUM(CASE WHEN "day_of_week" = 3 THEN "num_of_emissions" ELSE 0 END) AS wed,
---     SUM(CASE WHEN "day_of_week" = 4 THEN "num_of_emissions" ELSE 0 END) AS thu,
---     SUM(CASE WHEN "day_of_week" = 5 THEN "num_of_emissions" ELSE 0 END) AS fri,
---     SUM(CASE WHEN "day_of_week" = 6 THEN "num_of_emissions" ELSE 0 END) AS sat,
---     SUM(CASE WHEN "day_of_week" = 7 THEN "num_of_emissions" ELSE 0 END) AS sun
--- FROM "ads_desc"
--- JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
--- JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
--- JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
--- WHERE "year" = 2023
--- GROUP BY "submedium", "brand", "month"
--- ORDER BY "submedium", "brand", "month";
+CREATE VIEW IF NOT EXISTS "spoty_dziennie_2018" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien" = 1 THEN "brand" ELSE 0 END) AS "1",
+    COUNT(CASE WHEN "dzien" = 2 THEN "brand" ELSE 0 END) AS "2",
+    COUNT(CASE WHEN "dzien" = 3 THEN "brand" ELSE 0 END) AS "3",
+    COUNT(CASE WHEN "dzien" = 4 THEN "brand" ELSE 0 END) AS "4",
+    COUNT(CASE WHEN "dzien" = 5 THEN "brand" ELSE 0 END) AS "5",
+    COUNT(CASE WHEN "dzien" = 6 THEN "brand" ELSE 0 END) AS "6",
+    COUNT(CASE WHEN "dzien" = 7 THEN "brand" ELSE 0 END) AS "7",
+    COUNT(CASE WHEN "dzien" = 8 THEN "brand" ELSE 0 END) AS "8",
+    COUNT(CASE WHEN "dzien" = 9 THEN "brand" ELSE 0 END) AS "9",
+    COUNT(CASE WHEN "dzien" = 10 THEN "brand" ELSE 0 END) AS "10",
+    COUNT(CASE WHEN "dzien" = 11 THEN "brand" ELSE 0 END) AS "11",
+    COUNT(CASE WHEN "dzien" = 12 THEN "brand" ELSE 0 END) AS "12",
+    COUNT(CASE WHEN "dzien" = 13 THEN "brand" ELSE 0 END) AS "13",
+    COUNT(CASE WHEN "dzien" = 14 THEN "brand" ELSE 0 END) AS "14",
+    COUNT(CASE WHEN "dzien" = 15 THEN "brand" ELSE 0 END) AS "15",
+    COUNT(CASE WHEN "dzien" = 16 THEN "brand" ELSE 0 END) AS "16",
+    COUNT(CASE WHEN "dzien" = 17 THEN "brand" ELSE 0 END) AS "17",
+    COUNT(CASE WHEN "dzien" = 18 THEN "brand" ELSE 0 END) AS "18",
+    COUNT(CASE WHEN "dzien" = 19 THEN "brand" ELSE 0 END) AS "19",
+    COUNT(CASE WHEN "dzien" = 20 THEN "brand" ELSE 0 END) AS "20",
+    COUNT(CASE WHEN "dzien" = 21 THEN "brand" ELSE 0 END) AS "21",
+    COUNT(CASE WHEN "dzien" = 22 THEN "brand" ELSE 0 END) AS "22",
+    COUNT(CASE WHEN "dzien" = 23 THEN "brand" ELSE 0 END) AS "23",
+    COUNT(CASE WHEN "dzien" = 24 THEN "brand" ELSE 0 END) AS "24",
+    COUNT(CASE WHEN "dzien" = 25 THEN "brand" ELSE 0 END) AS "25",
+    COUNT(CASE WHEN "dzien" = 26 THEN "brand" ELSE 0 END) AS "26",
+    COUNT(CASE WHEN "dzien" = 27 THEN "brand" ELSE 0 END) AS "27",
+    COUNT(CASE WHEN "dzien" = 28 THEN "brand" ELSE 0 END) AS "28",
+    COUNT(CASE WHEN "dzien" = 29 THEN "brand" ELSE 0 END) AS "29",
+    COUNT(CASE WHEN "dzien" = 30 THEN "brand" ELSE 0 END) AS "30",
+    COUNT(CASE WHEN "dzien" = 31 THEN "brand" ELSE 0 END) AS "31"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2018
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
 
--- -- A viev for returning the number of spot emissions by brand, radio station, 
--- -- and daypart in selectced month, by each brand per radio station and daypart.
--- -- Filter using for instance:
--- -- SELECT * FROM "em_daypart_brand_submedium_2023"
--- -- WHERE "month" = 8 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
--- CREATE VIEW "em_daypart_brand_submedium_2023" AS
--- SELECT "month", "brand", "submedium", "daypart", SUM("num_of_emissions") AS "quantity"
--- FROM "ads_desc"
--- JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
--- JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
--- JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
--- JOIN "ad_time_details" ON "ad_time_details"."id" = "ads_desc"."ad_time_details_id"
--- JOIN "dayparts" ON "dayparts"."id" = "ad_time_details"."daypart_id"
--- WHERE "year" = 2023
--- GROUP BY "brand", "submedium", "daypart", "month"
--- ORDER BY "brand", "submedium", "daypart";
+CREATE VIEW IF NOT EXISTS "spoty_dziennie_2019" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien" = 1 THEN "brand" ELSE 0 END) AS "1",
+    COUNT(CASE WHEN "dzien" = 2 THEN "brand" ELSE 0 END) AS "2",
+    COUNT(CASE WHEN "dzien" = 3 THEN "brand" ELSE 0 END) AS "3",
+    COUNT(CASE WHEN "dzien" = 4 THEN "brand" ELSE 0 END) AS "4",
+    COUNT(CASE WHEN "dzien" = 5 THEN "brand" ELSE 0 END) AS "5",
+    COUNT(CASE WHEN "dzien" = 6 THEN "brand" ELSE 0 END) AS "6",
+    COUNT(CASE WHEN "dzien" = 7 THEN "brand" ELSE 0 END) AS "7",
+    COUNT(CASE WHEN "dzien" = 8 THEN "brand" ELSE 0 END) AS "8",
+    COUNT(CASE WHEN "dzien" = 9 THEN "brand" ELSE 0 END) AS "9",
+    COUNT(CASE WHEN "dzien" = 10 THEN "brand" ELSE 0 END) AS "10",
+    COUNT(CASE WHEN "dzien" = 11 THEN "brand" ELSE 0 END) AS "11",
+    COUNT(CASE WHEN "dzien" = 12 THEN "brand" ELSE 0 END) AS "12",
+    COUNT(CASE WHEN "dzien" = 13 THEN "brand" ELSE 0 END) AS "13",
+    COUNT(CASE WHEN "dzien" = 14 THEN "brand" ELSE 0 END) AS "14",
+    COUNT(CASE WHEN "dzien" = 15 THEN "brand" ELSE 0 END) AS "15",
+    COUNT(CASE WHEN "dzien" = 16 THEN "brand" ELSE 0 END) AS "16",
+    COUNT(CASE WHEN "dzien" = 17 THEN "brand" ELSE 0 END) AS "17",
+    COUNT(CASE WHEN "dzien" = 18 THEN "brand" ELSE 0 END) AS "18",
+    COUNT(CASE WHEN "dzien" = 19 THEN "brand" ELSE 0 END) AS "19",
+    COUNT(CASE WHEN "dzien" = 20 THEN "brand" ELSE 0 END) AS "20",
+    COUNT(CASE WHEN "dzien" = 21 THEN "brand" ELSE 0 END) AS "21",
+    COUNT(CASE WHEN "dzien" = 22 THEN "brand" ELSE 0 END) AS "22",
+    COUNT(CASE WHEN "dzien" = 23 THEN "brand" ELSE 0 END) AS "23",
+    COUNT(CASE WHEN "dzien" = 24 THEN "brand" ELSE 0 END) AS "24",
+    COUNT(CASE WHEN "dzien" = 25 THEN "brand" ELSE 0 END) AS "25",
+    COUNT(CASE WHEN "dzien" = 26 THEN "brand" ELSE 0 END) AS "26",
+    COUNT(CASE WHEN "dzien" = 27 THEN "brand" ELSE 0 END) AS "27",
+    COUNT(CASE WHEN "dzien" = 28 THEN "brand" ELSE 0 END) AS "28",
+    COUNT(CASE WHEN "dzien" = 29 THEN "brand" ELSE 0 END) AS "29",
+    COUNT(CASE WHEN "dzien" = 30 THEN "brand" ELSE 0 END) AS "30",
+    COUNT(CASE WHEN "dzien" = 31 THEN "brand" ELSE 0 END) AS "31"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2019
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
 
--- -- A viev for returning the rc costs of spot emissions by brand, radio station, 
--- -- and daypart in selectced month, by each brand per radio station and daypart.
--- -- Filter using for instance:
--- -- SELECT * FROM "em_daypart_brand_submedium_2023"
--- -- WHERE "month" = 8 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM')
--- CREATE VIEW "rc_daypart_brand_submedium_2023" AS
--- SELECT "month", "submedium", "brand", "daypart", SUM("cost") AS "rc_cost"
--- FROM "ads_desc"
--- JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
--- JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
--- JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
--- JOIN "ad_time_details" ON "ad_time_details"."id" = "ads_desc"."ad_time_details_id"
--- JOIN "dayparts" ON "dayparts"."id" = "ad_time_details"."daypart_id"
--- WHERE "year" = 2023
--- GROUP BY "brand", "submedium", "daypart", "month"
--- ORDER BY "brand", "submedium", "daypart";
+CREATE VIEW IF NOT EXISTS "spoty_dziennie_2020" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien" = 1 THEN "brand" ELSE 0 END) AS "1",
+    COUNT(CASE WHEN "dzien" = 2 THEN "brand" ELSE 0 END) AS "2",
+    COUNT(CASE WHEN "dzien" = 3 THEN "brand" ELSE 0 END) AS "3",
+    COUNT(CASE WHEN "dzien" = 4 THEN "brand" ELSE 0 END) AS "4",
+    COUNT(CASE WHEN "dzien" = 5 THEN "brand" ELSE 0 END) AS "5",
+    COUNT(CASE WHEN "dzien" = 6 THEN "brand" ELSE 0 END) AS "6",
+    COUNT(CASE WHEN "dzien" = 7 THEN "brand" ELSE 0 END) AS "7",
+    COUNT(CASE WHEN "dzien" = 8 THEN "brand" ELSE 0 END) AS "8",
+    COUNT(CASE WHEN "dzien" = 9 THEN "brand" ELSE 0 END) AS "9",
+    COUNT(CASE WHEN "dzien" = 10 THEN "brand" ELSE 0 END) AS "10",
+    COUNT(CASE WHEN "dzien" = 11 THEN "brand" ELSE 0 END) AS "11",
+    COUNT(CASE WHEN "dzien" = 12 THEN "brand" ELSE 0 END) AS "12",
+    COUNT(CASE WHEN "dzien" = 13 THEN "brand" ELSE 0 END) AS "13",
+    COUNT(CASE WHEN "dzien" = 14 THEN "brand" ELSE 0 END) AS "14",
+    COUNT(CASE WHEN "dzien" = 15 THEN "brand" ELSE 0 END) AS "15",
+    COUNT(CASE WHEN "dzien" = 16 THEN "brand" ELSE 0 END) AS "16",
+    COUNT(CASE WHEN "dzien" = 17 THEN "brand" ELSE 0 END) AS "17",
+    COUNT(CASE WHEN "dzien" = 18 THEN "brand" ELSE 0 END) AS "18",
+    COUNT(CASE WHEN "dzien" = 19 THEN "brand" ELSE 0 END) AS "19",
+    COUNT(CASE WHEN "dzien" = 20 THEN "brand" ELSE 0 END) AS "20",
+    COUNT(CASE WHEN "dzien" = 21 THEN "brand" ELSE 0 END) AS "21",
+    COUNT(CASE WHEN "dzien" = 22 THEN "brand" ELSE 0 END) AS "22",
+    COUNT(CASE WHEN "dzien" = 23 THEN "brand" ELSE 0 END) AS "23",
+    COUNT(CASE WHEN "dzien" = 24 THEN "brand" ELSE 0 END) AS "24",
+    COUNT(CASE WHEN "dzien" = 25 THEN "brand" ELSE 0 END) AS "25",
+    COUNT(CASE WHEN "dzien" = 26 THEN "brand" ELSE 0 END) AS "26",
+    COUNT(CASE WHEN "dzien" = 27 THEN "brand" ELSE 0 END) AS "27",
+    COUNT(CASE WHEN "dzien" = 28 THEN "brand" ELSE 0 END) AS "28",
+    COUNT(CASE WHEN "dzien" = 29 THEN "brand" ELSE 0 END) AS "29",
+    COUNT(CASE WHEN "dzien" = 30 THEN "brand" ELSE 0 END) AS "30",
+    COUNT(CASE WHEN "dzien" = 31 THEN "brand" ELSE 0 END) AS "31"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2020
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
 
--- -- Returns the sum of rc costs of all spots 
--- -- emitted in selectced month, by each brand per radio station.
--- -- SELECT * FROM "rc_brand_submedium_2023"
--- -- WHERE "month" = 10 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
--- CREATE VIEW "rc_brand_submedium_2023" AS
--- SELECT "month", "brand", "submedium", SUM("cost") AS "rc_cost" 
--- FROM "ads_desc"
--- JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
--- JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
--- JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
--- WHERE "year" = 2023
--- GROUP BY "brand", "submedium", "month"
--- ORDER BY "rc_cost" DESC, "brand", "submedium";
+CREATE VIEW IF NOT EXISTS "spoty_dziennie_2021" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien" = 1 THEN "brand" ELSE 0 END) AS "1",
+    COUNT(CASE WHEN "dzien" = 2 THEN "brand" ELSE 0 END) AS "2",
+    COUNT(CASE WHEN "dzien" = 3 THEN "brand" ELSE 0 END) AS "3",
+    COUNT(CASE WHEN "dzien" = 4 THEN "brand" ELSE 0 END) AS "4",
+    COUNT(CASE WHEN "dzien" = 5 THEN "brand" ELSE 0 END) AS "5",
+    COUNT(CASE WHEN "dzien" = 6 THEN "brand" ELSE 0 END) AS "6",
+    COUNT(CASE WHEN "dzien" = 7 THEN "brand" ELSE 0 END) AS "7",
+    COUNT(CASE WHEN "dzien" = 8 THEN "brand" ELSE 0 END) AS "8",
+    COUNT(CASE WHEN "dzien" = 9 THEN "brand" ELSE 0 END) AS "9",
+    COUNT(CASE WHEN "dzien" = 10 THEN "brand" ELSE 0 END) AS "10",
+    COUNT(CASE WHEN "dzien" = 11 THEN "brand" ELSE 0 END) AS "11",
+    COUNT(CASE WHEN "dzien" = 12 THEN "brand" ELSE 0 END) AS "12",
+    COUNT(CASE WHEN "dzien" = 13 THEN "brand" ELSE 0 END) AS "13",
+    COUNT(CASE WHEN "dzien" = 14 THEN "brand" ELSE 0 END) AS "14",
+    COUNT(CASE WHEN "dzien" = 15 THEN "brand" ELSE 0 END) AS "15",
+    COUNT(CASE WHEN "dzien" = 16 THEN "brand" ELSE 0 END) AS "16",
+    COUNT(CASE WHEN "dzien" = 17 THEN "brand" ELSE 0 END) AS "17",
+    COUNT(CASE WHEN "dzien" = 18 THEN "brand" ELSE 0 END) AS "18",
+    COUNT(CASE WHEN "dzien" = 19 THEN "brand" ELSE 0 END) AS "19",
+    COUNT(CASE WHEN "dzien" = 20 THEN "brand" ELSE 0 END) AS "20",
+    COUNT(CASE WHEN "dzien" = 21 THEN "brand" ELSE 0 END) AS "21",
+    COUNT(CASE WHEN "dzien" = 22 THEN "brand" ELSE 0 END) AS "22",
+    COUNT(CASE WHEN "dzien" = 23 THEN "brand" ELSE 0 END) AS "23",
+    COUNT(CASE WHEN "dzien" = 24 THEN "brand" ELSE 0 END) AS "24",
+    COUNT(CASE WHEN "dzien" = 25 THEN "brand" ELSE 0 END) AS "25",
+    COUNT(CASE WHEN "dzien" = 26 THEN "brand" ELSE 0 END) AS "26",
+    COUNT(CASE WHEN "dzien" = 27 THEN "brand" ELSE 0 END) AS "27",
+    COUNT(CASE WHEN "dzien" = 28 THEN "brand" ELSE 0 END) AS "28",
+    COUNT(CASE WHEN "dzien" = 29 THEN "brand" ELSE 0 END) AS "29",
+    COUNT(CASE WHEN "dzien" = 30 THEN "brand" ELSE 0 END) AS "30",
+    COUNT(CASE WHEN "dzien" = 31 THEN "brand" ELSE 0 END) AS "31"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2021
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
 
--- -- Returns the sum of all spots 
--- -- emitted in selectced month, by each brand per radio station.
--- -- SELECT * FROM "em_brand_submedium_2023"
--- -- WHERE "month" = 10 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
--- CREATE VIEW "em_brand_submedium_2023" AS
--- SELECT "month", "brand", "submedium", SUM("num_of_emissions") AS "quantity" 
--- FROM "ads_desc"
--- JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
--- JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
--- JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
--- WHERE "year" = 2023
--- GROUP BY "brand", "submedium", "month"
--- ORDER BY "quantity" DESC, "brand", "submedium";
+CREATE VIEW IF NOT EXISTS "spoty_dziennie_2022" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien" = 1 THEN "brand" ELSE 0 END) AS "1",
+    COUNT(CASE WHEN "dzien" = 2 THEN "brand" ELSE 0 END) AS "2",
+    COUNT(CASE WHEN "dzien" = 3 THEN "brand" ELSE 0 END) AS "3",
+    COUNT(CASE WHEN "dzien" = 4 THEN "brand" ELSE 0 END) AS "4",
+    COUNT(CASE WHEN "dzien" = 5 THEN "brand" ELSE 0 END) AS "5",
+    COUNT(CASE WHEN "dzien" = 6 THEN "brand" ELSE 0 END) AS "6",
+    COUNT(CASE WHEN "dzien" = 7 THEN "brand" ELSE 0 END) AS "7",
+    COUNT(CASE WHEN "dzien" = 8 THEN "brand" ELSE 0 END) AS "8",
+    COUNT(CASE WHEN "dzien" = 9 THEN "brand" ELSE 0 END) AS "9",
+    COUNT(CASE WHEN "dzien" = 10 THEN "brand" ELSE 0 END) AS "10",
+    COUNT(CASE WHEN "dzien" = 11 THEN "brand" ELSE 0 END) AS "11",
+    COUNT(CASE WHEN "dzien" = 12 THEN "brand" ELSE 0 END) AS "12",
+    COUNT(CASE WHEN "dzien" = 13 THEN "brand" ELSE 0 END) AS "13",
+    COUNT(CASE WHEN "dzien" = 14 THEN "brand" ELSE 0 END) AS "14",
+    COUNT(CASE WHEN "dzien" = 15 THEN "brand" ELSE 0 END) AS "15",
+    COUNT(CASE WHEN "dzien" = 16 THEN "brand" ELSE 0 END) AS "16",
+    COUNT(CASE WHEN "dzien" = 17 THEN "brand" ELSE 0 END) AS "17",
+    COUNT(CASE WHEN "dzien" = 18 THEN "brand" ELSE 0 END) AS "18",
+    COUNT(CASE WHEN "dzien" = 19 THEN "brand" ELSE 0 END) AS "19",
+    COUNT(CASE WHEN "dzien" = 20 THEN "brand" ELSE 0 END) AS "20",
+    COUNT(CASE WHEN "dzien" = 21 THEN "brand" ELSE 0 END) AS "21",
+    COUNT(CASE WHEN "dzien" = 22 THEN "brand" ELSE 0 END) AS "22",
+    COUNT(CASE WHEN "dzien" = 23 THEN "brand" ELSE 0 END) AS "23",
+    COUNT(CASE WHEN "dzien" = 24 THEN "brand" ELSE 0 END) AS "24",
+    COUNT(CASE WHEN "dzien" = 25 THEN "brand" ELSE 0 END) AS "25",
+    COUNT(CASE WHEN "dzien" = 26 THEN "brand" ELSE 0 END) AS "26",
+    COUNT(CASE WHEN "dzien" = 27 THEN "brand" ELSE 0 END) AS "27",
+    COUNT(CASE WHEN "dzien" = 28 THEN "brand" ELSE 0 END) AS "28",
+    COUNT(CASE WHEN "dzien" = 29 THEN "brand" ELSE 0 END) AS "29",
+    COUNT(CASE WHEN "dzien" = 30 THEN "brand" ELSE 0 END) AS "30",
+    COUNT(CASE WHEN "dzien" = 31 THEN "brand" ELSE 0 END) AS "31"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2022
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
 
--- -- INDEX SECTION -- 
--- CREATE INDEX "brand" ON "brands" ("brand");
--- CREATE INDEX "month" ON "date_time" ("month")
--- CREATE INDEX "year" ON "date_time" ("year")
--- CREATE INDEX "submedium" ON "mediums" ("submedium");
+CREATE VIEW IF NOT EXISTS "spoty_dziennie_2023" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien" = 1 THEN "brand" ELSE 0 END) AS "1",
+    COUNT(CASE WHEN "dzien" = 2 THEN "brand" ELSE 0 END) AS "2",
+    COUNT(CASE WHEN "dzien" = 3 THEN "brand" ELSE 0 END) AS "3",
+    COUNT(CASE WHEN "dzien" = 4 THEN "brand" ELSE 0 END) AS "4",
+    COUNT(CASE WHEN "dzien" = 5 THEN "brand" ELSE 0 END) AS "5",
+    COUNT(CASE WHEN "dzien" = 6 THEN "brand" ELSE 0 END) AS "6",
+    COUNT(CASE WHEN "dzien" = 7 THEN "brand" ELSE 0 END) AS "7",
+    COUNT(CASE WHEN "dzien" = 8 THEN "brand" ELSE 0 END) AS "8",
+    COUNT(CASE WHEN "dzien" = 9 THEN "brand" ELSE 0 END) AS "9",
+    COUNT(CASE WHEN "dzien" = 10 THEN "brand" ELSE 0 END) AS "10",
+    COUNT(CASE WHEN "dzien" = 11 THEN "brand" ELSE 0 END) AS "11",
+    COUNT(CASE WHEN "dzien" = 12 THEN "brand" ELSE 0 END) AS "12",
+    COUNT(CASE WHEN "dzien" = 13 THEN "brand" ELSE 0 END) AS "13",
+    COUNT(CASE WHEN "dzien" = 14 THEN "brand" ELSE 0 END) AS "14",
+    COUNT(CASE WHEN "dzien" = 15 THEN "brand" ELSE 0 END) AS "15",
+    COUNT(CASE WHEN "dzien" = 16 THEN "brand" ELSE 0 END) AS "16",
+    COUNT(CASE WHEN "dzien" = 17 THEN "brand" ELSE 0 END) AS "17",
+    COUNT(CASE WHEN "dzien" = 18 THEN "brand" ELSE 0 END) AS "18",
+    COUNT(CASE WHEN "dzien" = 19 THEN "brand" ELSE 0 END) AS "19",
+    COUNT(CASE WHEN "dzien" = 20 THEN "brand" ELSE 0 END) AS "20",
+    COUNT(CASE WHEN "dzien" = 21 THEN "brand" ELSE 0 END) AS "21",
+    COUNT(CASE WHEN "dzien" = 22 THEN "brand" ELSE 0 END) AS "22",
+    COUNT(CASE WHEN "dzien" = 23 THEN "brand" ELSE 0 END) AS "23",
+    COUNT(CASE WHEN "dzien" = 24 THEN "brand" ELSE 0 END) AS "24",
+    COUNT(CASE WHEN "dzien" = 25 THEN "brand" ELSE 0 END) AS "25",
+    COUNT(CASE WHEN "dzien" = 26 THEN "brand" ELSE 0 END) AS "26",
+    COUNT(CASE WHEN "dzien" = 27 THEN "brand" ELSE 0 END) AS "27",
+    COUNT(CASE WHEN "dzien" = 28 THEN "brand" ELSE 0 END) AS "28",
+    COUNT(CASE WHEN "dzien" = 29 THEN "brand" ELSE 0 END) AS "29",
+    COUNT(CASE WHEN "dzien" = 30 THEN "brand" ELSE 0 END) AS "30",
+    COUNT(CASE WHEN "dzien" = 31 THEN "brand" ELSE 0 END) AS "31"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2023
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
+
+CREATE VIEW IF NOT EXISTS "spoty_dziennie_2024" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien" = 1 THEN "brand" ELSE 0 END) AS "1",
+    COUNT(CASE WHEN "dzien" = 2 THEN "brand" ELSE 0 END) AS "2",
+    COUNT(CASE WHEN "dzien" = 3 THEN "brand" ELSE 0 END) AS "3",
+    COUNT(CASE WHEN "dzien" = 4 THEN "brand" ELSE 0 END) AS "4",
+    COUNT(CASE WHEN "dzien" = 5 THEN "brand" ELSE 0 END) AS "5",
+    COUNT(CASE WHEN "dzien" = 6 THEN "brand" ELSE 0 END) AS "6",
+    COUNT(CASE WHEN "dzien" = 7 THEN "brand" ELSE 0 END) AS "7",
+    COUNT(CASE WHEN "dzien" = 8 THEN "brand" ELSE 0 END) AS "8",
+    COUNT(CASE WHEN "dzien" = 9 THEN "brand" ELSE 0 END) AS "9",
+    COUNT(CASE WHEN "dzien" = 10 THEN "brand" ELSE 0 END) AS "10",
+    COUNT(CASE WHEN "dzien" = 11 THEN "brand" ELSE 0 END) AS "11",
+    COUNT(CASE WHEN "dzien" = 12 THEN "brand" ELSE 0 END) AS "12",
+    COUNT(CASE WHEN "dzien" = 13 THEN "brand" ELSE 0 END) AS "13",
+    COUNT(CASE WHEN "dzien" = 14 THEN "brand" ELSE 0 END) AS "14",
+    COUNT(CASE WHEN "dzien" = 15 THEN "brand" ELSE 0 END) AS "15",
+    COUNT(CASE WHEN "dzien" = 16 THEN "brand" ELSE 0 END) AS "16",
+    COUNT(CASE WHEN "dzien" = 17 THEN "brand" ELSE 0 END) AS "17",
+    COUNT(CASE WHEN "dzien" = 18 THEN "brand" ELSE 0 END) AS "18",
+    COUNT(CASE WHEN "dzien" = 19 THEN "brand" ELSE 0 END) AS "19",
+    COUNT(CASE WHEN "dzien" = 20 THEN "brand" ELSE 0 END) AS "20",
+    COUNT(CASE WHEN "dzien" = 21 THEN "brand" ELSE 0 END) AS "21",
+    COUNT(CASE WHEN "dzien" = 22 THEN "brand" ELSE 0 END) AS "22",
+    COUNT(CASE WHEN "dzien" = 23 THEN "brand" ELSE 0 END) AS "23",
+    COUNT(CASE WHEN "dzien" = 24 THEN "brand" ELSE 0 END) AS "24",
+    COUNT(CASE WHEN "dzien" = 25 THEN "brand" ELSE 0 END) AS "25",
+    COUNT(CASE WHEN "dzien" = 26 THEN "brand" ELSE 0 END) AS "26",
+    COUNT(CASE WHEN "dzien" = 27 THEN "brand" ELSE 0 END) AS "27",
+    COUNT(CASE WHEN "dzien" = 28 THEN "brand" ELSE 0 END) AS "28",
+    COUNT(CASE WHEN "dzien" = 29 THEN "brand" ELSE 0 END) AS "29",
+    COUNT(CASE WHEN "dzien" = 30 THEN "brand" ELSE 0 END) AS "30",
+    COUNT(CASE WHEN "dzien" = 31 THEN "brand" ELSE 0 END) AS "31"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2024
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
 
 
+-- A view for spots per dow for band and submedium returning pivot like table. 
+-- Filter by using:
+-- SELECT * FROM "spoty_dzien_tyg_2017"
+-- WHERE "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM') AND "miesiac_nr" = 8;
+CREATE VIEW IF NOT EXISTS "spoty_dzien_tyg_2017" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien_tyg_nr" = 1 THEN "brand" ELSE 0 END) AS pon,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 2 THEN "brand" ELSE 0 END) AS wt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 3 THEN "brand" ELSE 0 END) AS sr,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 4 THEN "brand" ELSE 0 END) AS czw,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 5 THEN "brand" ELSE 0 END) AS pt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 6 THEN "brand" ELSE 0 END) AS sob,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 7 THEN "brand" ELSE 0 END) AS nd
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2017
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
+
+CREATE VIEW IF NOT EXISTS "spoty_dzien_tyg_2018" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien_tyg_nr" = 1 THEN "brand" ELSE 0 END) AS pon,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 2 THEN "brand" ELSE 0 END) AS wt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 3 THEN "brand" ELSE 0 END) AS sr,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 4 THEN "brand" ELSE 0 END) AS czw,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 5 THEN "brand" ELSE 0 END) AS pt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 6 THEN "brand" ELSE 0 END) AS sob,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 7 THEN "brand" ELSE 0 END) AS nd
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2018
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
+
+CREATE VIEW IF NOT EXISTS "spoty_dzien_tyg_2019" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien_tyg_nr" = 1 THEN "brand" ELSE 0 END) AS pon,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 2 THEN "brand" ELSE 0 END) AS wt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 3 THEN "brand" ELSE 0 END) AS sr,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 4 THEN "brand" ELSE 0 END) AS czw,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 5 THEN "brand" ELSE 0 END) AS pt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 6 THEN "brand" ELSE 0 END) AS sob,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 7 THEN "brand" ELSE 0 END) AS nd
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2019
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
+
+CREATE VIEW IF NOT EXISTS "spoty_dzien_tyg_2020" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien_tyg_nr" = 1 THEN "brand" ELSE 0 END) AS pon,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 2 THEN "brand" ELSE 0 END) AS wt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 3 THEN "brand" ELSE 0 END) AS sr,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 4 THEN "brand" ELSE 0 END) AS czw,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 5 THEN "brand" ELSE 0 END) AS pt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 6 THEN "brand" ELSE 0 END) AS sob,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 7 THEN "brand" ELSE 0 END) AS nd
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2020
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
+
+CREATE VIEW IF NOT EXISTS "spoty_dzien_tyg_2021" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien_tyg_nr" = 1 THEN "brand" ELSE 0 END) AS pon,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 2 THEN "brand" ELSE 0 END) AS wt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 3 THEN "brand" ELSE 0 END) AS sr,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 4 THEN "brand" ELSE 0 END) AS czw,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 5 THEN "brand" ELSE 0 END) AS pt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 6 THEN "brand" ELSE 0 END) AS sob,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 7 THEN "brand" ELSE 0 END) AS nd
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2021
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
+
+CREATE VIEW IF NOT EXISTS "spoty_dzien_tyg_2022" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien_tyg_nr" = 1 THEN "brand" ELSE 0 END) AS pon,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 2 THEN "brand" ELSE 0 END) AS wt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 3 THEN "brand" ELSE 0 END) AS sr,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 4 THEN "brand" ELSE 0 END) AS czw,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 5 THEN "brand" ELSE 0 END) AS pt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 6 THEN "brand" ELSE 0 END) AS sob,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 7 THEN "brand" ELSE 0 END) AS nd
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2022
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
+
+CREATE VIEW IF NOT EXISTS "spoty_dzien_tyg_2023" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien_tyg_nr" = 1 THEN "brand" ELSE 0 END) AS pon,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 2 THEN "brand" ELSE 0 END) AS wt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 3 THEN "brand" ELSE 0 END) AS sr,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 4 THEN "brand" ELSE 0 END) AS czw,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 5 THEN "brand" ELSE 0 END) AS pt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 6 THEN "brand" ELSE 0 END) AS sob,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 7 THEN "brand" ELSE 0 END) AS nd
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2023
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
+
+CREATE VIEW IF NOT EXISTS "spoty_dzien_tyg_2024" AS
+SELECT "submedium", "brand", "miesiac_nr",
+    COUNT(CASE WHEN "dzien_tyg_nr" = 1 THEN "brand" ELSE 0 END) AS pon,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 2 THEN "brand" ELSE 0 END) AS wt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 3 THEN "brand" ELSE 0 END) AS sr,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 4 THEN "brand" ELSE 0 END) AS czw,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 5 THEN "brand" ELSE 0 END) AS pt,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 6 THEN "brand" ELSE 0 END) AS sob,
+    COUNT(CASE WHEN "dzien_tyg_nr" = 7 THEN "brand" ELSE 0 END) AS nd
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2024
+GROUP BY "submedium", "brand", "miesiac_nr"
+ORDER BY "submedium", "brand", "miesiac_nr";
+
+-- A view for returning the number of spot emissions by brand, radio station, 
+-- and daypart in selectced month, by each brand per radio station and daypart.
+-- Filter using for instance:
+-- A view for spots per dow for band and submedium returning pivot like table. 
+-- Filter by using:
+-- SELECT * FROM "em_daypart_brand_submedium_2017"
+-- WHERE "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM') AND "miesiac_nr" = 8;
+CREATE VIEW IF NOT EXISTS "em_daypart_brand_submedium_2017" AS
+SELECT "miesiac_nr", "brand", "submedium", "daypart", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2017
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "em_daypart_brand_submedium_2018" AS
+SELECT "miesiac_nr", "brand", "submedium", "daypart", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2018
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "em_daypart_brand_submedium_2019" AS
+SELECT "miesiac_nr", "brand", "submedium", "daypart", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2019
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "em_daypart_brand_submedium_2020" AS
+SELECT "miesiac_nr", "brand", "submedium", "daypart", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2020
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "em_daypart_brand_submedium_2021" AS
+SELECT "miesiac_nr", "brand", "submedium", "daypart", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2021
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "em_daypart_brand_submedium_2022" AS
+SELECT "miesiac_nr", "brand", "submedium", "daypart", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2022
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "em_daypart_brand_submedium_2023" AS
+SELECT "miesiac_nr", "brand", "submedium", "daypart", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2023
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "em_daypart_brand_submedium_2024" AS
+SELECT "miesiac_nr", "brand", "submedium", "daypart", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2024
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
 
 
+-- A viev for returning the rc costs of spot emissions by brand, radio station, 
+-- and daypart in selectced month, by each brand per radio station and daypart.
+-- Filter using for instance:
+-- SELECT * FROM "rc_daypart_brand_submedium_2017"
+-- WHERE "miesiac_nr" = 8 AND "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM')
+CREATE VIEW IF NOT EXISTS "rc_daypart_brand_submedium_2017" AS
+SELECT "miesiac_nr", "submedium", "brand", "daypart", SUM("koszt") AS "koszt_rc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2017
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "rc_daypart_brand_submedium_2018" AS
+SELECT "miesiac_nr", "submedium", "brand", "daypart", SUM("koszt") AS "koszt_rc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2018
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "rc_daypart_brand_submedium_2019" AS
+SELECT "miesiac_nr", "submedium", "brand", "daypart", SUM("koszt") AS "koszt_rc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2019
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "rc_daypart_brand_submedium_2020" AS
+SELECT "miesiac_nr", "submedium", "brand", "daypart", SUM("koszt") AS "koszt_rc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2020
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "rc_daypart_brand_submedium_2021" AS
+SELECT "miesiac_nr", "submedium", "brand", "daypart", SUM("koszt") AS "koszt_rc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2021
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "rc_daypart_brand_submedium_2022" AS
+SELECT "miesiac_nr", "submedium", "brand", "daypart", SUM("koszt") AS "koszt_rc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2022
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "rc_daypart_brand_submedium_2023" AS
+SELECT "miesiac_nr", "submedium", "brand", "daypart", SUM("koszt") AS "koszt_rc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2023
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+CREATE VIEW IF NOT EXISTS "rc_daypart_brand_submedium_2024" AS
+SELECT "miesiac_nr", "submedium", "brand", "daypart", SUM("koszt") AS "koszt_rc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+WHERE "rok" = 2024
+GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
+ORDER BY "brand", "submedium", "daypart";
+
+
+-- Returns the sum of rc costs of all spots 
+-- emitted in selectced month, by each brand per radio station.
+-- SELECT * FROM "rc_brand_submedium_2017"
+-- WHERE "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM') AND "miesiac_nr" = 8;
+CREATE VIEW IF NOT EXISTS "rc_brand_submedium_2017" AS
+SELECT "miesiac_nr", "brand", "submedium", SUM("koszt") AS "koszt_rc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2017
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "koszt_rc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "rc_brand_submedium_2018" AS
+SELECT "miesiac_nr", "brand", "submedium", SUM("koszt") AS "koszt_rc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2018
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "koszt_rc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "rc_brand_submedium_2019" AS
+SELECT "miesiac_nr", "brand", "submedium", SUM("koszt") AS "koszt_rc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2019
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "koszt_rc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "rc_brand_submedium_2020" AS
+SELECT "miesiac_nr", "brand", "submedium", SUM("koszt") AS "koszt_rc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2020
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "koszt_rc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "rc_brand_submedium_2021" AS
+SELECT "miesiac_nr", "brand", "submedium", SUM("koszt") AS "koszt_rc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2021
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "koszt_rc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "rc_brand_submedium_2022" AS
+SELECT "miesiac_nr", "brand", "submedium", SUM("koszt") AS "koszt_rc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2022
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "koszt_rc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "rc_brand_submedium_2023" AS
+SELECT "miesiac_nr", "brand", "submedium", SUM("koszt") AS "koszt_rc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2023
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "koszt_rc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "rc_brand_submedium_2024" AS
+SELECT "miesiac_nr", "brand", "submedium", SUM("koszt") AS "koszt_rc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2024
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "koszt_rc" DESC, "brand", "submedium";
+
+-- Returns the sum of all spots 
+-- emitted in selectced month, by each brand per radio station.
+-- SELECT * FROM "em_brand_submedium_2023"
+-- WHERE "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM') AND "miesiac_nr" = 8;
+CREATE VIEW IF NOT EXISTS "em_brand_submedium_2017" AS
+SELECT "miesiac_nr", "brand", "submedium", COUNT("submedium") AS "ilosc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2017
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "ilosc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "em_brand_submedium_2018" AS
+SELECT "miesiac_nr", "brand", "submedium", COUNT("submedium") AS "ilosc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2018
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "ilosc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "em_brand_submedium_2019" AS
+SELECT "miesiac_nr", "brand", "submedium", COUNT("submedium") AS "ilosc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2019
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "ilosc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "em_brand_submedium_2020" AS
+SELECT "miesiac_nr", "brand", "submedium", COUNT("submedium") AS "ilosc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2020
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "ilosc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "em_brand_submedium_2021" AS
+SELECT "miesiac_nr", "brand", "submedium", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2021
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "ilosc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "em_brand_submedium_2022" AS
+SELECT "miesiac_nr", "brand", "submedium", COUNT("submedium") AS "ilosc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2022
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "ilosc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "em_brand_submedium_2023" AS
+SELECT "miesiac_nr", "brand", "submedium", COUNT("submedium") AS "ilosc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2023
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "ilosc" DESC, "brand", "submedium";
+
+CREATE VIEW IF NOT EXISTS "em_brand_submedium_2024" AS
+SELECT "miesiac_nr", "brand", "submedium", COUNT("submedium") AS "ilosc"
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+WHERE "rok" = 2024
+GROUP BY "brand", "submedium", "miesiac_nr"
+ORDER BY "ilosc" DESC, "brand", "submedium";
+
+-- INDEX SECTION -- 
+-- CREATE INDEX "dla_ilosci_na_brand" ON "spoty" ("data", "brand_id", "submedium_id");
+-- CREATE INDEX "dla_rc_na_brand" ON "spoty" ("data", "brand_id", "submedium_id", "koszt");
+-- CREATE INDEX "dla_rc_daypart_na_brand" ON "spoty" ("data", "brand_id", "submedium_id", "czas_reklamy_id", "koszt");
+-- CREATE INDEX "dla_ilosci_daypart_na_brand" ON "spoty" ("data", "brand_id", "submedium_id", "czas_reklamy_id");
+
+-- CREATE INDEX "testowy" ON "spoty" ("data", "brand_id", "submedium_id");
