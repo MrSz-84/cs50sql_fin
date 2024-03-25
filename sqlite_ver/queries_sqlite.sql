@@ -1,128 +1,127 @@
 -- Returns the sum of ratecard costs of all spots 
 -- emitted in selectced month, by each brand.
-SELECT "brand", SUM("cost") AS "rc_cost" 
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-WHERE "month" = 8
+SELECT "brand", SUM("koszt") AS "koszt_rc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+WHERE "miesiac_nr" = 8
 GROUP BY "brand"
-ORDER BY "rc_cost" DESC;
+ORDER BY "koszt_rc" DESC;
 
 -- Returns the sum of all spots 
 -- emitted in selectced month, by each brand.
-SELECT "brand", SUM("num_of_emissions") AS "quantity" 
-FROM "ads_desc"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-WHERE "month" = 8
+SELECT "brand", COUNT("brand") AS "ilosc" 
+FROM "spoty"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+WHERE "miesiac_nr" = 8
 GROUP BY "brand"
-ORDER BY "quantity" DESC;
+ORDER BY "ilosc" DESC;
 
 -- Returns the sum all spots 
 -- emitted in selectced month, by each brand per radio station.
 SELECT * FROM "em_brand_submedium_2023"
-WHERE "month" = 10 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
-
+WHERE "miesiac_nr" = 10 AND "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM');
 
 -- Returns the sum of rc costs of all spots 
 -- emitted in selectced month, by each brand per radio station.
 SELECT * FROM "rc_brand_submedium_2023"
-WHERE "month" = 10 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
+WHERE "miesiac_nr" = 10 AND "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM');
 
 -- Return the number of spot emissions by brand, radio station and daypart
 -- in selectced month, by each brand per radio station and daypart.
 SELECT * FROM "em_daypart_brand_submedium_2023"
-WHERE "month" = 10 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
+WHERE "miesiac_nr" = 10 AND "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM');
 
 -- Return the ratecard cost of spot emissions by brand, radio station and daypart
 -- in selectced month, by each brand per radio station and daypart.
 SELECT * FROM "em_daypart_brand_submedium_2023"
-WHERE "month" = 8 AND "submedium" IN ('BET', 'SOME FM', 'OLD 1', 'FROGGY WEATHER Wrocław', 'TALK FM');
+WHERE "miesiac_nr" = 10 AND "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM');
 
 -- Return a pivot like table for number of spost per radio station 
 -- per brand for each dow.
 SELECT * FROM "spots_per_day_2023"
-WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 9;
+WHERE "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM') AND "month" = 9;
 
 -- Return a pivot like table for number of spost per radio station 
 -- per brand for each dow.
-SELECT * FROM "spots_per_dow_2023"
-WHERE "submedium" IN ('FROGGY WEATHER Wrocław', 'BET', 'SOME FM', 'OLD 1', 'TALK FM') AND "month" = 8;
+SELECT * FROM "spoty_dziennie_2017"
+WHERE "submedium" IN ('ESKA Wrocław', 'ZET', 'RMF FM', 'PR 1', 'TOK FM') AND "miesiac_nr" = 8;
 
 -- Returns the complete data set for selected period of time, 
 -- for frurther processing in Pandas.
-SELECT "date_time"."date" AS "date", "day", "day_of_week" AS "dow", "dow_name", 
-"month", "month_name", "year", "ads_desc"."ad_code" AS "ad_code", "brand", 
-"submedium", "broadcaster", "reach", "ad_slot_hour", "daypart", "length", 
-"product_type", "cost", "type", "num_of_emissions" AS "quan"
-FROM "ads_desc"
-JOIN "date_time" ON "date_time"."date" = "ads_desc"."date"
-JOIN "brands" ON "brands"."id" = "ads_desc"."brand_id"
-JOIN "mediums" ON "mediums"."id" = "ads_desc"."medium_id"
-JOIN "broadcasters" ON "broadcasters"."id" = "mediums"."broadcaster_id"
-JOIN "ad_reach" ON "ad_reach"."id" = "mediums"."ad_reach_id"
-JOIN "ad_time_details" ON "ad_time_details"."id" = "ads_desc"."ad_time_details_id"
-JOIN "dayparts" ON "dayparts"."id" = "ad_time_details"."daypart_id"
-JOIN "unified_lengths" ON "unified_lengths"."id" = "ad_time_details"."unified_length_id"
-JOIN "product_types" ON "product_types"."id" = "ads_desc"."product_type_id"
-JOIN "pl_dow_names" ON "pl_dow_names"."id" = "date_time"."day_of_week"
-JOIN "pl_month_names" ON "pl_month_names"."id" = "date_time"."month"
-WHERE "month" BETWEEN 8 AND 10 AND "year" BETWEEN 2023 AND 2023;
+SELECT "data_czas"."data" AS "data", "dzien", "dzien_tyg_nr" AS 'd_tyg_nr', "dzien_tyg", 
+"tydzien", "miesiac_nr" AS "m_nr", "miesiac", "rok", "spoty"."kod_reklamy" AS "kod_reklamy", "brand", 
+"submedium", "nadawca", "zasieg", "godz_bloku_rek" AS "godz_bloku", "daypart", 
+"dl_ujednolicona" AS "dl_spotu", "typ_produktu", "koszt", "typ", "l_emisji" AS "ilosc"
+FROM "spoty"
+JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
+JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
+JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
+JOIN "nadawcy" ON "nadawcy"."id" = "submedia"."nadawca_id"
+JOIN "zasiegi" ON "zasiegi"."id" = "submedia"."zasieg_id"
+JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
+JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dl_ujednolicone" ON "dl_ujednolicone"."id" = "czasy_reklam"."dl_ujednolicona_id"
+JOIN "typy_produktu" ON "typy_produktu"."id" = "spoty"."typ_produktu_id"
+JOIN "dni_tyg" ON "dni_tyg"."id" = "data_czas"."dzien_tyg_nr"
+JOIN "miesiace" ON "miesiace"."id" = "data_czas"."miesiac_nr"
+WHERE "miesiac_nr" BETWEEN 8 AND 10 AND "rok" BETWEEN 2023 AND 2023;
 
 -- Insert entry for Polish dow names table
-INSERT INTO "pl_dow_names" ("dow_name") 
+INSERT INTO "dni_ty" ("dzien_tyg") 
 VALUES ('Poniedziałek');
 
 -- Insert entry for Polish month names table
-INSERT INTO "pl_month_name" ("month_name") 
+INSERT INTO "miesiace" ("Miesiac") 
 VALUES ('Styczeń');
 
 -- Insert entry for date_time table. Date format is ISO 8601.
-INSERT INTO "date_time" ("date") 
+INSERT INTO "data_czas" ("data") 
 VALUES ('2023-08-01');
 
 -- Insert entry for brands table.
-INSERT INTO "brands" ("brand") 
-VALUES ('MEDIA SHOP');
+INSERT INTO "brandy" ("brand") 
+VALUES ('MEDIA MARKT');
 
 -- Insert entry for unified_lengths table.
-INSERT INTO "unified_lengths" ("length") 
+INSERT INTO "dl_ujednolicone" ("dl_ujednolicona") 
 VALUES (30);
 
 -- Insert entry for dayparts table. 
 -- "do 9" means in Polish language "up to 9 AM".
-INSERT INTO "dayparts" ("daypart") 
+INSERT INTO "dayparty" ("daypart") 
 VALUES ('do 9');
 
 -- Insert entry for product_types table.
 -- "OGŁOSZENIA O PRACY" means in Polish language "Job annoucement" 
 -- or "Job advertisement".
-INSERT INTO "product_types" ("product_type") 
+INSERT INTO "typy_produktu" ("typ_produktu") 
 VALUES ('OGŁOSZENIA O PRACY');
 
 -- Insert entry for broadcaster table.
-INSERT INTO "broadcasters" ("broadcaster") 
+INSERT INTO "nadawcy" ("nadawca") 
 VALUES ('BAR RADIO');
 
 -- Insert entry for ad_reach table.
 -- "krajowe" means in Polish language "nationwide" 
-INSERT INTO "ad_reach" ("reach") 
+INSERT INTO "zasiegi" ("zasieg") 
 VALUES ('krajowe');
 
 -- Insert entry for mediums table.
-INSERT INTO "mediums" ("submedium", "broadcaster_id", "ad_reach_id") 
-VALUES ('FROGGY WEATHER Katowice', 8, 2);
+INSERT INTO "submedia" ("submedium", "nadawca_id", "zasieg_id") 
+VALUES ('ESKA Katowice', 8, 2);
 
 -- Insert entry for ad_time_details table.
-INSERT INTO "ad_time_details" (
-    "date", 
-    "ad_slot_hour", 
+INSERT INTO "czasy_reklam" (
+    "data", 
+    "godz_bloku_rek", 
     "gg",
     "mm",
-    "length_mod",
+    "dlugosc",
     "daypart_id",
-    "unified_length_id",
-    "ad_code"
+    "dl_ujednolicona_id",
+    "kod_rek"
     ) 
 VALUES (
     '2023-08-01', 
@@ -136,17 +135,17 @@ VALUES (
     );
 
 -- Insert entry for ads_desc table. This is the main table.
-INSERT INTO "ad_time_details" (
-    "date", 
-    "ad_description", 
-    "ad_code",
+INSERT INTO "spoty" (
+    "data", 
+    "opis_rek", 
+    "kod_reklamy",
     "brand_id",
-    "medium_id",
-    "ad_time_details_id",
-    "product_type_id",
-    "cost",
-    "num_of_emissions",
-    "type"
+    "submedium_id",
+    "czas_reklamy_id",
+    "typ_produktu_id",
+    "koszt",
+    "l_emisji",
+    "typ"
     ) 
 VALUES (
     '2023-08-01', 
