@@ -333,6 +333,10 @@ def get_min_max_date(fields: list[str], table_: str, dataframe: pd.DataFrame,
     cur.execute(query)
     in_db_min = pd.Timestamp(cur.fetchone()[0])
     
+    # Filter out dates that are already in DB.
+    filtr = (dataframe['Data'] >= in_db_max) | (dataframe['Data'] <= in_db_min)
+    dataframe = dataframe.loc[filtr]
+    
     # Get max and min date from DF
     in_df_max = dataframe['Data'].max()
     in_df_min = dataframe['Data'].min()
