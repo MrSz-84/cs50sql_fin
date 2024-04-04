@@ -9,6 +9,8 @@ import sys
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
+file_path = f'../data/live_3.csv'
+
 def get_index_val(table_name: str, cur: sqlite3.Cursor)-> int:
     """
     Function gets max index value from the selected table and returns it as an integer increased by one.
@@ -323,38 +325,27 @@ def get_min_max_date(fields: list[str], table_: str, dataframe: pd.DataFrame,
     :rtype: tuple[bool, pd.DataFrame]
     """
     
-    # Get max date from DB
-    query = (f"SELECT MAX({fields[0]}) FROM {table_};")
+    # Get dates range from DB
+    query = (f"SELECT DISTINCT({fields[0]}) FROM {table_}")
     cur.execute(query)
-    in_db_max = pd.Timestamp(cur.fetchone()[0])
+    in_db = pd.DataFrame(cur.fetchall(), dtype='datetime64[ns]')
+    in_db.rename(columns={0: 'Data'}, inplace=True)
     
-    # Get min date from DB
-    query = (f"SELECT MIN({fields[0]}) FROM {table_};")
-    cur.execute(query)
-    in_db_min = pd.Timestamp(cur.fetchone()[0])
-    
-    # Filter out dates that are already in DB.
-    filtr = (dataframe['Data'] >= in_db_max) | (dataframe['Data'] <= in_db_min)
-    dataframe = dataframe.loc[filtr]
-    
-    # Get max and min date from DF
-    in_df_max = dataframe['Data'].max()
-    in_df_min = dataframe['Data'].min()
-    
-    # Check if min and max dates from DF are between range of dates from DB
-    min_df_in_db_range = in_db_min <= in_df_min <= in_db_max
-    max_df_in_db_range = in_db_min <= in_df_max <= in_db_max
+    # # Filter out dates that are already in DB.
+    if not in_db.empty:
+        filtr = ~dataframe['Data'].isin(in_db['Data'])
+        dataframe = dataframe.loc[filtr]
     
     # Main logic add if empty or when dates not present in DB.
-    if  pd.isnull(in_db_max) or pd.isnull(in_db_min) :
+    if in_db.empty:
         return (True, dataframe)
-    elif not min_df_in_db_range and not max_df_in_db_range:
-        print(f'>>> Adding to {table_}. New data found.')
-        return (True, dataframe)
-    else:
+    elif dataframe.empty:
         print(f'>>> Not adding to {table_}. One or more dates already in DB.')
         print(f'>>> Check the data you want to insert into DB.')
         return (False, dataframe)
+    else:
+        print(f'>>> Adding to {table_}. New data found.')
+        return (True, dataframe)
 
 def add_8_fields(data_set:dict[pd.DataFrame,str,list[str]], 
                  con: sqlite3.Connection, cur: sqlite3.Cursor)-> None:
@@ -509,7 +500,7 @@ cur = con.cursor()
 print('Creating DataFrame.')
 df_start = time.time()
 # Reads the dataframe
-df = pd.read_csv('../data/live_1.csv', delimiter=';', thousands=',',
+df = pd.read_csv(file_path, delimiter=';', thousands=',',
                  dtype={'Dzień': 'category', 'Dzień tygodnia': 'category', 
                         'Nr. tyg.': 'category', 'Rok': 'category',
                         'Miesiąc': 'category', 'Zasięg medium': 'category',
