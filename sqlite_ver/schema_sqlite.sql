@@ -117,22 +117,7 @@ CREATE TABLE IF NOT EXISTS "dl_ujednolicone" (
     PRIMARY KEY("id")
 );
 
-CREATE TABLE IF NOT EXISTS "czasy_reklam" (
-    "id" INTEGER,
-    "data" TEXT NOT NULL,
-    "godz_bloku_rek" TEXT NOT NULL,
-    "gg" INTEGER NOT NULL,
-    "mm" INTEGER NOT NULL,
-    "dlugosc" INTEGER NOT NULL,
-    "daypart_id" INTEGER NOT NULL,
-    "dl_ujednolicona_id" INTEGER NOT NULL,
-    "kod_rek" TEXT NOT NULL,
-    PRIMARY KEY("id"),
-    FOREIGN KEY("daypart_id") REFERENCES "dayparty"("id"),
-    FOREIGN KEY("dl_ujednolicona_id") REFERENCES "dl_ujednolicone"("id")
-);
-
--- Creates pprodyct type references for ads_desc table.
+-- Creates product type references for ads_desc table.
 CREATE TABLE IF NOT EXISTS "typy_produktu" (
     "id" INTEGER,
     "typ_produktu" TEXT NOT NULL UNIQUE CHECK(
@@ -146,26 +131,58 @@ CREATE TABLE IF NOT EXISTS "typy_produktu" (
     PRIMARY KEY("id")
 );
 
+-- Creates ad_blocks type references for ads_desc table.
+CREATE TABLE IF NOT EXISTS "bloki_rek" (
+    "id" INTEGER,
+    "godz_blok_rek" TEXT NOT NULL UNIQUE,
+    PRIMARY KEY("id")
+);
+
+-- Creates kody_rek for spoty table.
+CREATE TABLE IF NOT EXISTS "kody_rek" (
+    "id" INTEGER,
+    "kod_rek" INTEGER UNIQUE,
+    "opis_spotu" TEXT NOT NULL,
+    PRIMARY KEY("id")
+);
+
+-- Creates typy_rek for spoty table.
+CREATE TABLE IF NOT EXISTS "typy_rek" (
+    "id" INTEGER,
+    "typ_rek" TEXT UNIQUE NOT NULL,
+    PRIMARY KEY("id")
+);
+
+
 -- Create main table with ads emitted through radio estations across country. 
 -- This is the table which holds all the data, and to which other tables point.
 CREATE TABLE IF NOT EXISTS "spoty" (
     "id" INTEGER,
     "data" TEXT NOT NULL,
-    "opis_rek" TEXT NOT NULL,
-    "kod_reklamy" INTEGER NOT NULL,
+    "gg" INTEGER NOT NULL,
+    "mm" INTEGER NOT NULL,
+    'ss' integer NOT NULL,
+    "koszt" INTEGER,
+    "dlugosc" INTEGER NOT NULL,
+    "kod_rek_id" INTEGER NOT NULL,
+    "daypart_id" INTEGER NOT NULL,
+    "dl_ujednolicona_id" INTEGER NOT NULL,
+    "blok_rek_id" INTEGER NOT NULL,
     "brand_id" INTEGER NOT NULL,
     "submedium_id" INTEGER NOT NULL,
-    "czas_reklamy_id" INTEGER NOT NULL UNIQUE,
     "typ_produktu_id" INTEGER NOT NULL,
-    "koszt" INTEGER,
     "l_emisji" INTEGER NOT NULL CHECK("l_emisji" > 0),
-    "typ" TEXT NOT NULL DEFAULT 'reklama',
+    "typ_rek_id" INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY("id"),
     FOREIGN KEY("brand_id") REFERENCES "brands"("id"),
     FOREIGN KEY("submedium_id") REFERENCES "submedia"("id"),
-    FOREIGN KEY("czas_reklamy_id") REFERENCES "czasy_reklam"("id"),
     FOREIGN KEY("typ_produktu_id") REFERENCES "typy_produktu"("id"),
-    FOREIGN KEY("data") REFERENCES "data_czas"("data")
+    FOREIGN KEY("data") REFERENCES "data_czas"("data"),
+    FOREIGN KEY("daypart_id") REFERENCES "dayparty"("id"),
+    FOREIGN KEY("dl_ujednolicona_id") REFERENCES "dl_ujednolicone"("id"),
+    FOREIGN KEY("blok_rek_id") REFERENCES "bloki_rek"("id"),
+    FOREIGN KEY("kod_rek_id") REFERENCES "kody_rek"("id"),
+    FOREIGN KEY("typ_rek_id") REFERENCES "typy_rek"("id")
 );
 
 
@@ -243,6 +260,35 @@ BEGIN
     WHERE "id" = NEW."id";
 END;
 
+-- Populates kod_rek column after opis_spotu insertion.
+CREATE TRIGGER IF NOT EXISTS "populate_kod_rek"
+AFTER INSERT ON "kody_rek"
+FOR EACH ROW
+BEGIN
+    UPDATE "kody_rek"
+    SET "kod_rek" = CAST(rtrim(NEW."opis_spotu", '@|@') AS INTEGER)
+    WHERE "id" = NEW."id";
+END;
+
+-- Updates opis_spotu column after opis_spotu insertion.
+CREATE TRIGGER IF NOT EXISTS "populate_opis_spotu"
+AFTER INSERT ON "kody_rek"
+FOR EACH ROW
+BEGIN
+    UPDATE "kody_rek"
+    SET "opis_spotu" = CAST(substr(NEW."opis_spotu", instr(NEW."opis_spotu", '@|@') + 3) AS TEXT)
+    WHERE "id" = NEW."id";
+END;
+
+-- CREATE TRIGGER IF NOT EXISTS "populate_opis_spotu"
+-- AFTER INSERT ON "kody_rek"
+-- FOR EACH ROW
+-- BEGIN
+--     UPDATE "kody_rek"
+--     SET "opis_spotu" = CAST(substr(NEW."opis_spotu", instr(NEW."opis_spotu", '@|@') + 3) AS TEXT)
+--     WHERE "id" = NEW."id";
+-- END;
+
 
 -- VIEWS SECTION --
 
@@ -252,18 +298,19 @@ END;
 -- It's also a good starting point to inporting the data to a data drame.
 CREATE VIEW IF NOT EXISTS "reklamy_all" AS
 SELECT "data_czas"."data" AS "data", "dzien", "dzien_tyg_nr" AS 'd_tyg_nr', "dzien_tyg", 
-"tydzien", "miesiac_nr" AS "m_nr", "miesiac", "rok", "spoty"."kod_reklamy" AS "kod_reklamy", "brand", 
-"submedium", "nadawca", "zasieg", "godz_bloku_rek" AS "godz_bloku", "daypart", 
+"tydzien", "miesiac_nr" AS "m_nr", "miesiac", "rok", "kod_rek", "brand", 
+"submedium", "nadawca", "zasieg", "godz_blok_rek" AS "godz_bloku", "daypart", 
 "dl_ujednolicona" AS "dl_spotu", "typ_produktu", "koszt", "typ", "l_emisji" AS "ilosc"
 FROM "spoty"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
 JOIN "nadawcy" ON "nadawcy"."id" = "submedia"."nadawca_id"
+JOIN "kody_rek" ON "kody_rek"."id" = "spoty"."kod_rek_id"
+JOIN "bloki_rek" ON "bloki_rek"."id" = "spoty"."blok_rek_id"
 JOIN "zasiegi" ON "zasiegi"."id" = "submedia"."zasieg_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
-JOIN "dl_ujednolicone" ON "dl_ujednolicone"."id" = "czasy_reklam"."dl_ujednolicona_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
+JOIN "dl_ujednolicone" ON "dl_ujednolicone"."id" = "spoty"."dl_ujednolicona_id"
 JOIN "typy_produktu" ON "typy_produktu"."id" = "spoty"."typ_produktu_id"
 JOIN "dni_tyg" ON "dni_tyg"."id" = "data_czas"."dzien_tyg_nr"
 JOIN "miesiace" ON "miesiace"."id" = "data_czas"."miesiac_nr";
@@ -753,8 +800,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2017
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -765,8 +811,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2018
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -777,8 +822,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2019
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -789,8 +833,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2020
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -801,8 +844,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2021
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -813,8 +855,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2022
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -825,8 +866,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2023
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -837,8 +877,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2024
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -855,8 +894,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2017
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -867,8 +905,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2018
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -879,8 +916,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2019
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -891,8 +927,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2020
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -903,8 +938,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2021
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -915,8 +949,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2022
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -927,8 +960,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2023
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
@@ -939,8 +971,7 @@ FROM "spoty"
 JOIN "brandy" ON "brandy"."id" = "spoty"."brand_id"
 JOIN "data_czas" ON "data_czas"."data" = "spoty"."data"
 JOIN "submedia" ON "submedia"."id" = "spoty"."submedium_id"
-JOIN "czasy_reklam" ON "czasy_reklam"."id" = "spoty"."czas_reklamy_id"
-JOIN "dayparty" ON "dayparty"."id" = "czasy_reklam"."daypart_id"
+JOIN "dayparty" ON "dayparty"."id" = "spoty"."daypart_id"
 WHERE "rok" = 2024
 GROUP BY "brand", "submedium", "daypart", "miesiac_nr"
 ORDER BY "brand", "submedium", "daypart";
