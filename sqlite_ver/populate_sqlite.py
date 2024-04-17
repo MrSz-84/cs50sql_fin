@@ -9,7 +9,7 @@ import sys
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
-file_path = f'../data/live_3.csv'
+file_path = f'../data/live_1.csv'
 
 def get_index_val(table_name: str, cur: sqlite3.Cursor)-> int:
     """
@@ -96,7 +96,10 @@ def check_for_data_1_field(data_:list, table_name:str, field_name:str,
     :rtype: tuple[bool, list[str/int]]
     """
     
-    query = (f'SELECT {field_name} FROM {table_name}')
+    if table_name == 'kody_rek':
+        query = (f"SELECT kod_rek FROM {table_name};")
+    else:
+        query = (f"SELECT {field_name} FROM {table_name};")
     cur.execute(query)
     
     in_db = pd.DataFrame([elem[0] for elem in cur.fetchall()])
@@ -106,23 +109,37 @@ def check_for_data_1_field(data_:list, table_name:str, field_name:str,
         return (True, data_)
     else:
         if field_name == 'data':
-            # in_db['data'] = pd.to_datetime(in_db['data'])
             in_db = list(in_db['data'])
+        elif table_name == 'kody_rek':
+            pass
         else: 
             in_db = list(in_db[field_name])
         
         if len(in_db) != 0 and table_name in avoid_adding:
             print(f'>>> Not adding to {table_name}. No new data found.')
             return (False, list(''))
-        in_df = pd.DataFrame(data_)
-        in_df = in_df.rename(columns={0: field_name})
-        # if field_name == 'data':
-        #     pass
-            # in_df['data'] = pd.to_datetime(in_df['data'])
+        if table_name == 'kody_rek':
+            in_df = pd.DataFrame(data_)
+            in_df = in_df[0].str.split(pat='@|@', expand=True, regex=False)
+        else:
+            in_df = pd.DataFrame(data_)
+            in_df = in_df.rename(columns={0: field_name})
         
         # we check if df contains new data in comparison to DB
-        new_data = in_df[~in_df.isin(in_db)].dropna()
-        new_data = new_data[field_name]
+        if table_name == 'kody_rek':
+            in_db = in_db.astype('int32')
+            in_df = in_df.astype({0: 'int32', 1:'object'})
+            filtr = ~in_df[0].isin(in_db[field_name])
+            new_data = in_df[filtr]
+            new_data = new_data.rename({0:'a', 1:'b'}, axis=1)
+            new_data.loc[:, field_name] = new_data.loc[:, ['a', 'b']].apply(lambda x: f'{x['a']}@|@{x['b']}', axis=1)
+            new_data.drop(['a', 'b'], axis=1, inplace=True)
+            new_data.astype({field_name:'object'})
+            new_data = new_data[field_name]
+        else:
+            new_data = in_df[~in_df.isin(in_db)].dropna()
+            new_data = new_data[field_name]
+            
         new_data = list(new_data)
         
         if len(new_data) != 0:
@@ -155,12 +172,10 @@ def add_3_fields(data_set:dict[pd.DataFrame,str,list],
              VALUES
              (:{data_set['fields'][0]}, 
              :{data_set['fields'][1]}, 
-             :{data_set['fields'][2]})
+             :{data_set['fields'][2]});
              """)
 
     for _, elem in data_set['data'].iterrows():
-        # TODO do type casting before data insertion
-        
         data = {f'{field}': value for field, value in zip(data_set['fields'], elem)}
         cur.execute(query, data)
         
@@ -269,133 +284,10 @@ def check_for_data_3_fields(fields:list[str], table_name: str, submedia: pd.Data
         print(f'>>> Not adding to {table_name}. No new data found.')
         return (False, submedia)
 
-def get_id_for_ad_time(fields: list[str], table_: str, 
-                       cur: sqlite3.Cursor)-> tuple[bool,pd.DataFrame]:
-    """
-    Gets IDs from reference tables to ad_time_details table. 
-    Mainly connects time details of singular ad emission with other tables containing details via IDs.
-    This function populates one of two core tables in this DB.
-    Returns a bool for logic purposes and data to be added into mediums.
-
-    :param fields: A list containing field / column names represented as a str
-    :param table_: Name of the table out of which the data is going to be pulled, 
-    represented as a str
-    :param cur: A cursor database object
-    :raise sqlite3.ProgrammingError: If column names don't fit into the table design
-    :daise sqlite3.OperationalError: If any eceptions on the DB side are raised, i.g. DB being locked
-    :return: Tuple containing bool for logic purposes and a Pandas DataFrame 
-    as data to be added into the DB during the update or initial DB fill.
-    :rtype: tuple[bool, pd.DataFrame]
-    """
-    
-    czasy_reklam = df[['Data', 'Godzina bloku reklamowego', 'GG', 'MM', 'dł./mod.', 'Daypart', 'dł. Ujednolicona', 'Detale_kod_reklamy']]
-    czasy_reklam.index = czasy_reklam.index + get_index_val(table_, cur)
-
-    query1 = ("SELECT dl_ujednolicona, id FROM dl_ujednolicone;")
-    cur.execute(query1)
-    unified_lengths = dict(cur.fetchall())
-
-    query2 = ("SELECT daypart, id FROM dayparty;")
-    cur.execute(query2)
-    dayparts = dict(cur.fetchall())
-
-    czasy_reklam.loc[:, 'Daypart'] = czasy_reklam['Daypart'].map(dayparts)
-    czasy_reklam.loc[:, 'dł. Ujednolicona'] = czasy_reklam['dł. Ujednolicona'].map(unified_lengths)
-
-    trigger, czasy_reklam = get_min_max_date(fields, table_, czasy_reklam, cur)
-    
-    return (trigger, czasy_reklam)
-
-def get_min_max_date(fields: list[str], table_: str, dataframe: pd.DataFrame, 
-                     cur: sqlite3.Cursor)-> tuple[bool, pd.DataFrame]:
-    """
-    Gets max and min dates from selected table. Then checks if dates present in the DF passed as a parameter
-    are outside of dates range. If so, allows data insertion into the DB, if not it informs the user, 
-    and proceedes with the rest of the code.
-
-    :param fields: A list containing field / column names represented as a str
-    :param table_: Name of the table out of which the data is going to be pulled, 
-    represented as a str
-    :param dataframe: Pandas DataFrame with the new data to be checked if not present in selected table
-    :param cur: A cursor database object
-    :raise sqlite3.ProgrammingError: If column names don't fit into the table design
-    :daise sqlite3.OperationalError: If any eceptions on the DB side are raised, i.g. DB being locked
-    :return: Tuple containing bool for logic purposes and a Pandas DataFrame 
-    as data to be added into the DB during the update or initial DB fill.
-    :rtype: tuple[bool, pd.DataFrame]
-    """
-    
-    # Get dates range from DB
-    query = (f"SELECT DISTINCT({fields[0]}) FROM {table_}")
-    cur.execute(query)
-    in_db = pd.DataFrame(cur.fetchall(), dtype='datetime64[ns]')
-    in_db.rename(columns={0: 'Data'}, inplace=True)
-    
-    # # Filter out dates that are already in DB.
-    if not in_db.empty:
-        filtr = ~dataframe['Data'].isin(in_db['Data'])
-        dataframe = dataframe.loc[filtr]
-    
-    # Main logic add if empty or when dates not present in DB.
-    if in_db.empty:
-        return (True, dataframe)
-    elif dataframe.empty:
-        print(f'>>> Not adding to {table_}. One or more dates already in DB.')
-        print(f'>>> Check the data you want to insert into DB.')
-        return (False, dataframe)
-    else:
-        print(f'>>> Adding to {table_}. New data found.')
-        return (True, dataframe)
-
-def add_8_fields(data_set:dict[pd.DataFrame,str,list[str]], 
-                 con: sqlite3.Connection, cur: sqlite3.Cursor)-> None:
-    """
-    Function adding data into ad_time_details table, which consists of 8 columns.
-
-    :param data_set: A dict contaning data to be added, table name, and field / column name.
-    Data is a Pandas DataFrame, table name and field name are both strings.
-    :raise KeyError: If key name does not match the pattern
-    :param con: A database connection object
-    :param cur: A cursor database object
-    :raise KeyError: If key name does not match the pattern
-    :raise sqlite3.ProgrammingError: If column names don't fit into the table design
-    :daise sqlite3.OperationalError: If any eceptions on the DB side are raised, i.g. DB being locked
-    :return: None
-    """
-    
-    query = (f"""
-             INSERT INTO {data_set['table']} (
-                {data_set['fields'][0]},
-                {data_set['fields'][1]},
-                {data_set['fields'][2]},
-                {data_set['fields'][3]},
-                {data_set['fields'][4]},
-                {data_set['fields'][5]},
-                {data_set['fields'][6]},
-                {data_set['fields'][7]})
-            VALUES(
-                :{data_set['fields'][0]},
-                :{data_set['fields'][1]},
-                :{data_set['fields'][2]},
-                :{data_set['fields'][3]},
-                :{data_set['fields'][4]},
-                :{data_set['fields'][5]},
-                :{data_set['fields'][6]},
-                :{data_set['fields'][7]})
-             """)
-
-    for _, elem in data_set['data'].iterrows():
-        elem.Data = elem.Data.strftime('%Y-%m-%d')
-        data = {f'{field}': value for field, value in zip(data_set['fields'], elem)}
-        cur.execute(query, data)
-        # con.commit()
-    
-    con.commit()
-
-def add_10_fields(data_set:dict[pd.DataFrame,str,list[str]],
+def add_14_fields(data_set:dict[pd.DataFrame,str,list[str]],
                   con: sqlite3.Connection, cur: sqlite3.Cursor)-> None:
     """
-    Function adding data into ad_time_details table, which consists of 10 columns.
+    Function adding data into ad_time_details table, which consists of 14 columns.
 
     :param data_set: A dict contaning data to be added, table name, and field / column name.
     Data is a Pandas DataFrame, table name and field name are both strings.
@@ -418,7 +310,12 @@ def add_10_fields(data_set:dict[pd.DataFrame,str,list[str]],
                 {data_set['fields'][6]},
                 {data_set['fields'][7]},
                 {data_set['fields'][8]},
-                {data_set['fields'][9]})
+                {data_set['fields'][9]},
+                {data_set['fields'][10]},
+                {data_set['fields'][11]},
+                {data_set['fields'][12]},
+                {data_set['fields'][13]},
+                {data_set['fields'][14]})
              VALUES(
                 :{data_set['fields'][0]},
                 :{data_set['fields'][1]},
@@ -429,7 +326,12 @@ def add_10_fields(data_set:dict[pd.DataFrame,str,list[str]],
                 :{data_set['fields'][6]},
                 :{data_set['fields'][7]},
                 :{data_set['fields'][8]},
-                :{data_set['fields'][9]})
+                :{data_set['fields'][9]},
+                :{data_set['fields'][10]},
+                :{data_set['fields'][11]},
+                :{data_set['fields'][12]},
+                :{data_set['fields'][13]},
+                :{data_set['fields'][14]})
              ;""")
 
     for _, elem in data_set['data'].iterrows():
@@ -458,9 +360,10 @@ def get_id_for_ads_desc(fields: list[str], table_: str,
     :rtype: tuple[bool, pd.DataFrame]
     """
     
-    spoty = df[['Data', 'Opis Reklamy', 'Kod Reklamy', 'Brand', 'Submedium', 'Detale_kod_reklamy', 'Produkt(4)', 'Koszt [zł]', 'L.emisji', 'Typ reklamy']]
+    spoty = df[['Data', 'GG', 'MM', 'SS', 'Koszt [zł]', 'dł./mod.', 'Kod Reklamy', 'Daypart', 'dł. Ujednolicona', 
+                'Godzina bloku reklamowego', 'Brand', 'Submedium', 'Produkt(4)', 'L.emisji', 'Typ reklamy', 'Zlepek']]
     spoty.index = spoty.index + get_index_val(table_, cur)
-
+    
     query1 = ("SELECT brand, id FROM brandy;")
     cur.execute(query1)
     brand_id = dict(cur.fetchall())
@@ -469,22 +372,90 @@ def get_id_for_ads_desc(fields: list[str], table_: str,
     cur.execute(query2)
     submedium_id = dict(cur.fetchall())
 
-    query3 = ("SELECT kod_rek, id FROM czasy_reklam;")
+    query3 = ("SELECT kod_rek, id FROM kody_rek;")
     cur.execute(query3)
-    czas_reklamy_id = dict(cur.fetchall())
+    kod_rek_id = dict(cur.fetchall())
 
     query4 = ("SELECT typ_produktu, id FROM typy_produktu;")
     cur.execute(query4)
     typ_produktu_id = dict(cur.fetchall())
+    
+    query5 = ("SELECT daypart, id FROM dayparty;")
+    cur.execute(query5)
+    daypart_id = dict(cur.fetchall())
+    
+    query6 = ("SELECT godz_blok_rek, id FROM bloki_rek;")
+    cur.execute(query6)
+    blok_rek_id = dict(cur.fetchall())
+    
+    query7 = ("SELECT typ_rek, id FROM typy_rek;")
+    cur.execute(query7)
+    typ_rek_id = dict(cur.fetchall())
+    
+    query8 = ("SELECT dl_ujednolicona, id FROM dl_ujednolicone;")
+    cur.execute(query8)
+    dl_ujednolicona = dict(cur.fetchall())
+
 
     spoty.loc[:, 'Brand'] = spoty['Brand'].map(brand_id)
     spoty.loc[:, 'Submedium'] = spoty['Submedium'].map(submedium_id)
-    spoty.loc[:, 'Detale_kod_reklamy'] = spoty['Detale_kod_reklamy'].map(czas_reklamy_id)
+    spoty.loc[:, 'Godzina bloku reklamowego'] = spoty['Godzina bloku reklamowego'].map(blok_rek_id)
     spoty.loc[:, 'Produkt(4)'] = spoty['Produkt(4)'].map(typ_produktu_id)
+    spoty.loc[:, 'Kod Reklamy'] = spoty['Kod Reklamy'].map(kod_rek_id).astype('int32')
+    spoty.loc[:, 'Daypart'] = spoty['Daypart'].map(daypart_id)
+    spoty.loc[:, 'Typ reklamy'] = spoty['Typ reklamy'].map(typ_rek_id)
+    spoty.loc[:, 'dł. Ujednolicona'] = spoty['dł. Ujednolicona'].map(dl_ujednolicona).astype('Int8')
     
-    trigger, spoty = get_min_max_date(fields, table_, spoty, cur)
+    trigger, spoty = get_unique_record(fields, table_, spoty, cur)
 
     return (trigger, spoty)
+
+def get_unique_record(fields: list[str], table_: str, dataframe: pd.DataFrame, 
+                     cur: sqlite3.Cursor)-> tuple[bool, pd.DataFrame]:
+    """
+    Gets max and min dates from selected table. Then checks if dates present in the DF passed as a parameter
+    are outside of dates range. If so, allows data insertion into the DB, if not it informs the user, 
+    and proceedes with the rest of the code.
+
+    :param fields: A list containing field / column names represented as a str
+    :param table_: Name of the table out of which the data is going to be pulled, 
+    represented as a str
+    :param dataframe: Pandas DataFrame with the new data to be checked if not present in selected table
+    :param cur: A cursor database object
+    :raise sqlite3.ProgrammingError: If column names don't fit into the table design
+    :daise sqlite3.OperationalError: If any eceptions on the DB side are raised, i.g. DB being locked
+    :return: Tuple containing bool for logic purposes and a Pandas DataFrame 
+    as data to be added into the DB during the update or initial DB fill.
+    :rtype: tuple[bool, pd.DataFrame]
+    """
+    
+    # Get dates range from DB
+    query = (f"""
+                SELECT {fields[0]} || {fields[1]} || {fields[2]} || {fields[3]} || {fields[5]} 
+                || kod_rek || brand || submedium FROM {table_}
+                JOIN kody_rek ON kody_rek.id = spoty.kod_rek_id
+                JOIN submedia ON spoty.submedium_id = submedia.id
+                JOIN brandy ON spoty.brand_id = brandy.id;
+            """)
+    cur.execute(query)
+    in_db = pd.DataFrame(cur.fetchall())
+    in_db.rename(columns={0: 'Zlepek'}, inplace=True)
+    
+    # # Filter out dates that are already in DB.
+    if not in_db.empty:
+        filtr = ~dataframe['Zlepek'].isin(in_db['Zlepek'])
+        dataframe = dataframe.loc[filtr]
+    
+    # Main logic add if empty or when dates not present in DB.
+    if in_db.empty:
+        return (True, dataframe)
+    elif dataframe.empty:
+        print(f'>>> Not adding to {table_}. One or more dates already in DB.')
+        print(f'>>> Check the data you want to insert into DB.')
+        return (False, dataframe)
+    else:
+        print(f'>>> Adding to {table_}. New data found.')
+        return (True, dataframe)
 
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
@@ -499,28 +470,55 @@ cur = con.cursor()
 
 print('Creating DataFrame.')
 df_start = time.time()
-# Reads the dataframe
-df = pd.read_csv(file_path, delimiter=';', thousands=',',
+# Reads the dataframe from CVS
+df = pd.read_csv(file_path, delimiter=';', thousands=' ', decimal=',',
                  dtype={'Dzień': 'category', 'Dzień tygodnia': 'category', 
                         'Nr. tyg.': 'category', 'Rok': 'category',
                         'Miesiąc': 'category', 'Zasięg medium': 'category',
                         'Brand': 'object', 'Produkt(4)': 'object',
                         'Kod Reklamy': 'int32', 'Opis Reklamy': 'object',
-                        'Typ reklamy': 'category', 'Wydawca/Nadawca': 'category',
+                        'Typ reklamy': 'object', 'Wydawca/Nadawca': 'category',
                         'Submedium': 'object', 'dł./mod.': 'int8',
-                        'GG': 'int8', 'MM': 'int8', 'Koszt [zł]': 'Int32',
-                        'L.emisji': 'int8', 'dł. Ujednolicona': 'Int8', 
-                        'Godzina bloku reklamowego': 'category'}, 
+                        'GG': 'int8', 'MM': 'int8', 'SS': 'int8', 
+                        'Koszt [zł]': 'Int32', 'L.emisji': 'int8', 
+                        'dł. Ujednolicona': 'Int8', 'Godzina bloku reklamowego': 'object'}, 
                  encoding='utf-8', parse_dates=['Data'], low_memory=False
                  )
 df.sort_values(by='Data', axis=0, inplace=True)
 df.reset_index(inplace=True)
 df.drop('index', axis=1, inplace=True)
-ind = df.index.values + get_index_val('spoty', cur)
-df2 = df[['Data', 'Kod Reklamy']].copy()
-df2['Data_str'] = df2['Data'].dt.strftime('%Y-%m-%d')
-df['Detale_kod_reklamy'] = df2[['Data_str', 'Kod Reklamy']].apply(lambda x: f'{x["Data_str"]} - {x["Kod Reklamy"]} - {ind[x.name]}', axis=1)
-del df2
+# ind = df.index.values + get_index_val('spoty', cur)
+df['Data_str'] = df['Data'].dt.strftime('%Y-%m-%d')
+df['Zlepek'] = df.apply(lambda x: f'{str(x['Data_str']).strip()+str(x['GG'])+str(x['MM'])+str(x['SS']) \
+                        +str(x['dł./mod.'])+str(x['Kod Reklamy'])+x['Brand']+x['Submedium']}', axis=1)
+df.drop(labels='Data_str', axis=1, inplace=True)
+
+# Reads the dataframe from EXCEL
+# dfs = pd.read_excel(file_path, sheet_name=None, thousands=' ', decimal=',',
+#                  dtype={'Dzień': 'category', 'Dzień tygodnia': 'category', 
+#                         'Nr. tyg.': 'category', 'Rok': 'category',
+#                         'Miesiąc': 'category', 'Zasięg medium': 'category',
+#                         'Brand': 'object', 'Produkt(4)': 'object',
+#                         'Kod Reklamy': 'int32', 'Opis Reklamy': 'object',
+#                         'Typ reklamy': 'object', 'Wydawca/Nadawca': 'category',
+#                         'Submedium': 'object', 'dł./mod.': 'int8',
+#                         'GG': 'int8', 'MM': 'int8', 'SS': 'int8', 
+#                         'Koszt [zł]': 'Int32', 'L.emisji': 'int8', 
+#                         'dł. Ujednolicona': 'Int8', 'Godzina bloku reklamowego': 'object'}, 
+#                  parse_dates=['Data']
+#                  )
+# df = pd.concat(dfs, ignore_index=True)
+# del dfs
+# df = df.astype({'Dzień': 'category','Nr. tyg.': 'category', 'Miesiąc': 'category', 
+#                 'Wydawca/Nadawca': 'category', 'Godzina bloku reklamowego': 'category'})
+# df.sort_values(by='Data', axis=0, inplace=True)
+# df.reset_index(inplace=True)
+# df.drop('index', axis=1, inplace=True)
+# # ind = df.index.values + get_index_val('spoty', cur)
+# df['Data_str'] = df['Data'].dt.strftime('%Y-%m-%d')
+# df['Zlepek'] = df.apply(lambda x: f'{str(x['Data_str'])+str(x['GG'])+str(x['MM'])+str(x['SS']) \
+#                         +str(x['dł./mod.'])+str(x['Kod Reklamy'])+x['Brand']+x['Submedium']}', axis=1)
+# df.drop(labels='Data_str', axis=1, inplace=True)
 df_end = time.time()
 df_diff = df_end - df_start
 
@@ -539,6 +537,10 @@ dayparts = df['Daypart'].unique()
 product_types = df['Produkt(4)'].sort_values().unique()
 broadcasters = df['Wydawca/Nadawca'].sort_values().unique()
 reaches = df['Zasięg medium'].unique()
+ad_blocks = df['Godzina bloku reklamowego'].unique()
+ad_codes = df.loc[:, ['Kod Reklamy', 'Opis Reklamy']].drop_duplicates(subset=['Kod Reklamy'], keep='first', ignore_index=True)
+ad_codes = ad_codes.apply(lambda x: f'{x['Kod Reklamy']}@|@{x['Opis Reklamy']}', axis=1)
+typ_rek = df['Typ reklamy'].unique()
 
 data_set = [{'data': dow2, 'table': 'dni_tyg', 'field': 'dzien_tyg'},
             {'data': months, 'table': 'miesiace', 'field': 'miesiac'},
@@ -549,10 +551,12 @@ data_set = [{'data': dow2, 'table': 'dni_tyg', 'field': 'dzien_tyg'},
             {'data': product_types, 'table': 'typy_produktu', 'field': 'typ_produktu'},
             {'data': broadcasters, 'table': 'nadawcy', 'field': 'nadawca'},
             {'data': reaches, 'table': 'zasiegi', 'field': 'zasieg'},
+            {'data': ad_blocks, 'table': 'bloki_rek', 'field': 'godz_blok_rek'},
+            {'data': ad_codes, 'table': 'kody_rek', 'field': 'opis_spotu'},
+            {'data': typ_rek, 'table': 'typy_rek', 'field': 'typ_rek'},
             ]
 
 avoid_adding = ['dni_tyg', 'miesiace', 'dl_ujednolicone', 'dayparty', 'zasiegi']
-
 
 
 # Inserting data into simple tables
@@ -593,37 +597,15 @@ if trigger:
 three_end = time.time()
 three_diff = three_end - three_start
 
-# Create and insert data into ad_time_details table
-eight_start = time.time()
-print('Inserting data to the eight input table.')
-fields = get_column_names('czasy_reklam', cur)
-trigger, czasy_reklam = get_id_for_ad_time(fields, 'czasy_reklam', cur)
-data_set3 = {'data': czasy_reklam, 'table': 'czasy_reklam', 'fields': fields}
-if trigger:
-    try:
-        add_8_fields(data_set3, con, cur)
-    except sqlite3.ProgrammingError as e:
-        con.close()
-        print('Failed to input the data.')
-        print(f'Error: {e}')
-        exit()
-    except sqlite3.OperationalError as e:
-        con.close()
-        print('Failed to input the data.')
-        print(f'Error: {e}')
-        exit()
-eight_end = time.time()
-eight_diff = eight_end - eight_start
-
-# Create and insert data into ad_time_details table
-ten_start = time.time()
-print('Inserting data to the ten input table.')
+# Create and insert data into spoty table
+fourteen_start = time.time()
+print('Inserting data to the fourteen input table.')
 fields = get_column_names('spoty', cur)
 trigger, spoty = get_id_for_ads_desc(fields, 'spoty', cur)
-data_set4 = {'data': spoty, 'table': 'spoty', 'fields': fields}
+data_set3 = {'data': spoty, 'table': 'spoty', 'fields': fields}
 if trigger:
     try:
-        add_10_fields(data_set4, con, cur)
+        add_14_fields(data_set3, con, cur)
     except sqlite3.ProgrammingError as e:
         con.close()
         print('Failed to input the data.')
@@ -634,8 +616,8 @@ if trigger:
         print('Failed to input the data.')
         print(f'Error: {e}')
         exit()
-ten_end = time.time()
-ten_diff = ten_end - ten_start
+fourteen_end = time.time()
+fourteen_diff = fourteen_end - fourteen_start
 
 
 print('Closing connection.')
@@ -646,10 +628,9 @@ m_diff = m_end - m_start
 
 print('Program has finished.')
 print(f"""
-Total time           : {m_diff:.2f}
-DF creation          : {df_diff:.2f}
-Ones processing time : {ones_diff:.2f}
-Three processing time: {three_diff:.2f}
-Eight processing time: {eight_diff:.2f}
-Ten processing time  : {ten_diff:.2f}
+Total time              : {m_diff:.2f}
+DF creation             : {df_diff:.2f}
+Ones processing time    : {ones_diff:.2f}
+Three processing time   : {three_diff:.2f}
+Fourteen processing time: {fourteen_diff:.2f}
 """)
