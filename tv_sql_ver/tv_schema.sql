@@ -35,6 +35,37 @@ CREATE TABLE IF NOT EXISTS "data_czas"(
     FOREIGN KEY("miesiac_nr") REFERENCES "miesiace"("id")
 );
 
+CREATE TABLE IF NOT EXISTS "kody_rek" (
+    "id" INTEGER,
+    "kod_rek" INTEGER NOT NULL UNIQUE,
+    "opis" TEXT NOT NULL,
+    PRIMARY KEY("id")
+);
+
+CREATE TABLE IF NOT EXISTS "producers" (
+    "id" INTEGER,
+    "producer" TEXT NOT NULL UNIQUE,
+    PRIMARY KEY("id")
+);
+
+CREATE TABLE IF NOT EXISTS "syndicates" (
+    "id" INTEGER,
+    "syndicate" TEXT NOT NULL UNIQUE,
+    PRIMARY KEY("id")
+);
+
+CREATE TABLE IF NOT EXISTS "brandy" (
+    "id" INTEGER,
+    "brand" INTEGER NOT NULL UNIQUE,
+    "producer_id" INTEGER NOT NULL,
+    "syndicate_id" INTEGER NOT NULL,
+    PRIMARY KEY('id'),
+    FOREIGN KEY("producer_id") REFERENCES "producers"("id"),
+    FOREIGN KEY("syndicate_id") REFERENCES "syndicates"("id")
+);
+
+
+
 CREATE TRIGGER IF NOT EXISTS "dodaj_dzien"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
