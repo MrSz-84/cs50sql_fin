@@ -86,16 +86,35 @@ CREATE TABLE IF NOT EXISTS "channels" (
     FOREIGN KEY("channel_gr_id") REFERENCES "channels"("id")
 );
 
--- Creates dayparts, containing dayparts at which ads were emitted.
+-- Creates dayparts table, containing dayparts at which ads were emitted.
 CREATE TABLE IF NOT EXISTS "dayparts" (
     "id" INTEGER,
     "daypart" TEXT NOT NULL UNIQUE
 );
 
+-- Creates pib_real_rels table, containing relative real positions in break.
 CREATE TABLE IF NOT EXISTS "pib_real_rels" (
     "id" INTEGER,
     "pib_real_rel" TEXT UNIQUE NOT NULL,
     PRIMARY KEY("id")
+);
+
+-- Creates dlugosci table, containing the lengths of emitted ads.
+CREATE TABLE IF NOT EXISTS "dlugosci" (
+    "id" INTEGER,
+    "dlugosc" INTEGER NOT NULL UNIQUE
+);
+
+-- Creates spot_classes table, containing type of emitted ad.
+CREATE TABLE IF NOT EXISTS "spot_classes" (
+    "id" INTEGER,
+    "spot_class" TEXT NOT NULL UNIQUE
+);
+
+-- Creates block_codes table, containing block codes of an emitted ad.
+CREATE TABLE IF NOT EXISTS "block_codes" (
+    "id" INTEGER,
+    "block_code" TEXT NOT NULL UNIQUE
 );
 
 
