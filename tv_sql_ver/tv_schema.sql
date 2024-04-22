@@ -92,6 +92,12 @@ CREATE TABLE IF NOT EXISTS "dayparts" (
     "daypart" TEXT NOT NULL UNIQUE
 );
 
+CREATE TABLE IF NOT EXISTS "pib_real_rels" (
+    "id" INTEGER,
+    "pib_real_rel" TEXT UNIQUE NOT NULL,
+    PRIMARY KEY("id")
+);
+
 
 -- TRIGGERS SECTION
 
