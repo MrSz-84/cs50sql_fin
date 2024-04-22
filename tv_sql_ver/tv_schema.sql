@@ -102,20 +102,76 @@ CREATE TABLE IF NOT EXISTS "pib_real_rels" (
 -- Creates dlugosci table, containing the lengths of emitted ads.
 CREATE TABLE IF NOT EXISTS "dlugosci" (
     "id" INTEGER,
-    "dlugosc" INTEGER NOT NULL UNIQUE
+    "dlugosc" INTEGER NOT NULL UNIQUE,
+    PRIMARY KEY("id")
 );
 
 -- Creates spot_classes table, containing type of emitted ad.
 CREATE TABLE IF NOT EXISTS "spot_classes" (
     "id" INTEGER,
-    "spot_class" TEXT NOT NULL UNIQUE
+    "spot_class" TEXT NOT NULL UNIQUE,
+    PRIMARY KEY("id")
 );
 
 -- Creates block_codes table, containing block codes of an emitted ad.
 CREATE TABLE IF NOT EXISTS "block_codes" (
     "id" INTEGER,
-    "block_code" TEXT NOT NULL UNIQUE
+    "block_code" TEXT NOT NULL UNIQUE,
+    PRIMARY KEY("id")
 );
+
+-- Creates prog_campaigns table, containing information in which tv programme given ad was emitted.
+CREATE TABLE IF NOT EXISTS "prog_campaigns" (
+    "id" INTEGER,
+    "prog_campaign" TEXT UNIQUE NOT NULL,
+    PRIMARY KEY("id")
+);
+
+-- Creates progs_after table, containing information before which tv programme given ad was emitted.
+CREATE TABLE IF NOT EXISTS "progs_before" (
+    "id" INTEGER,
+    "prog_before" TEXT UNIQUE NOT NULL,
+    PRIMARY KEY("id")
+);
+
+-- Creates progs_after table, containing information after which tv programme given ad was emitted.
+CREATE TABLE IF NOT EXISTS "progs_after" (
+    "id" INTEGER
+    "prog_after" TEXT UNIQUE NOT NULL,
+    PRIMARY KEY("id")
+);
+
+-- Creates main table spoty, containing unique spot emissions for every analysed brand.
+CREATE TABLE IF NOT EXISTS "spoty" (
+    "id" INTEGER
+    "data" TEXT NOT NULL,
+    "czas" TEXT NOT NULL,
+    "pib_pos" INTEGER NOT NULL,
+    "pib_count" INTEGER NOT NULL,
+    "pib_real_rel_id" INTEGER NOT NULL,
+    "spot_class_id" INTEGER NOT NULL,
+    "block_code_id" INTEGER NOT NULL,
+    "daypart_id" INTEGER NOT NULL,
+    "grp" REAL NOT NULL,
+    "channel_id" INTEGER NOT NULL,
+    "brand_id" INTEGER NOT NULL,
+    "dlugosc" INTEGER NOT NULL,
+    "kod_rek_id" INTEGER NOT NULL,
+    "prog_campaign_id" INTEGER NOT NULL,
+    "prog_before_id" INTEGER NOT NULL,
+    "prog_after_id" INTEGER NOT NULL,
+    PRIMARY KEY("id"),
+    FOREIGN KEY("pib_real_rel_id") REFERENCES "pib_real_rels"("id"),
+    FOREIGN KEY("spot_class_id") REFERENCES "spot_classes"("id"),
+    FOREIGN KEY("block_code_id") REFERENCES "block_codes"("id"),
+    FOREIGN KEY("channel_id") REFERENCES "channels"("id"),
+    FOREIGN KEY("brand_id") REFERENCES "brandy"("id"),
+    FOREIGN KEY("kod_rek_id") REFERENCES "kody_rek"("id"),
+    FOREIGN KEY("prog_campaign_id") REFERENCES "prog_campaigns"("id"),
+    FOREIGN KEY("prog_before_id") REFERENCES "progs_before"("id"),
+    FOREIGN KEY("prog_after_id") REFERENCES "progs_after"("id")
+);
+
 
 
 -- TRIGGERS SECTION
