@@ -1,4 +1,4 @@
-
+-- Creates miesiace table, containing Polish month names.
 CREATE TABLE IF NOT EXISTS "miesiace" (
     "id" INTEGER,
     "miesiac" TEXT NOT NULL UNIQUE CHECK(
@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS "miesiace" (
     PRIMARY KEY("id")
 );
 
+-- Creates dni_tyg table, containing Polish names for dows.
 CREATE TABLE IF NOT EXISTS "dni_tyg" (
     "id" INTEGER,
     "dzien_tyg" TEXT NOT NULL UNIQUE CHECK(
@@ -22,6 +23,7 @@ CREATE TABLE IF NOT EXISTS "dni_tyg" (
     PRIMARY KEY("id")
 );
 
+-- Creates data_czas table, containing date related data. Time data are absent at this point.
 CREATE TABLE IF NOT EXISTS "data_czas"(
     "id" INTEGER,
     "data" TEXT NOT NULL UNIQUE,
@@ -35,6 +37,7 @@ CREATE TABLE IF NOT EXISTS "data_czas"(
     FOREIGN KEY("miesiac_nr") REFERENCES "miesiace"("id")
 );
 
+-- Creates kody_rek table, containing ad codes and brief description of ad contents.
 CREATE TABLE IF NOT EXISTS "kody_rek" (
     "id" INTEGER,
     "kod_rek" INTEGER NOT NULL UNIQUE,
@@ -42,18 +45,22 @@ CREATE TABLE IF NOT EXISTS "kody_rek" (
     PRIMARY KEY("id")
 );
 
+-- Creates producers table, containing producer names.
 CREATE TABLE IF NOT EXISTS "producers" (
     "id" INTEGER,
     "producer" TEXT NOT NULL UNIQUE,
     PRIMARY KEY("id")
 );
 
+-- Creates syndicates table, contaning syndicate names.
 CREATE TABLE IF NOT EXISTS "syndicates" (
     "id" INTEGER,
     "syndicate" TEXT NOT NULL UNIQUE,
     PRIMARY KEY("id")
 );
 
+-- Creates brandy table, contaning names of the brands instructing advertisements,
+-- producers, and syndicates ids.
 CREATE TABLE IF NOT EXISTS "brandy" (
     "id" INTEGER,
     "brand" INTEGER NOT NULL UNIQUE,
@@ -64,8 +71,31 @@ CREATE TABLE IF NOT EXISTS "brandy" (
     FOREIGN KEY("syndicate_id") REFERENCES "syndicates"("id")
 );
 
+-- Creates channel_gr table, contaning channel group names.
+CREATE TABLE IF NOT EXISTS "channel_gr" (
+    "id" INTEGER,
+    "channel_gr" TEXT NOT NULL UNIQUE
+);
+
+-- Creates channels table, contaning channel name channel group id.
+CREATE TABLE IF NOT EXISTS "channels" (
+    "id" INTEGER,
+    "channel" TEXT NOT NULL UNIQUE,
+    "channel_gr_id" INTEGER NOT NULL,
+    PRIMARY KEY("id"),
+    FOREIGN KEY("channel_gr_id") REFERENCES "channels"("id")
+);
+
+-- Creates dayparts, containing dayparts at which ads were emitted.
+CREATE TABLE IF NOT EXISTS "dayparts" (
+    "id" INTEGER,
+    "daypart" TEXT NOT NULL UNIQUE
+);
 
 
+-- TRIGGERS SECTION
+
+-- Adds entry at dzien table, after population of data row.
 CREATE TRIGGER IF NOT EXISTS "dodaj_dzien"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
@@ -78,6 +108,7 @@ BEGIN
     WHERE "id" = NEW."id";
 END;
 
+-- Adds entry at dzien_tyg_nr table, after population of data row.
 CREATE TRIGGER IF NOT EXISTS "dodaj_dzien_tyg"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
@@ -94,6 +125,7 @@ BEGIN
     WHERE "id" = NEW."id";
 END;
 
+-- Adds entry at tydzien table, after population of data row.
 CREATE TRIGGER IF NOT EXISTS "dodaj_tydzien"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
@@ -106,6 +138,7 @@ BEGIN
     WHERE "id" = NEW."id";
 END;
 
+-- Adds entry at rok table, after population of data row.
 CREATE TRIGGER IF NOT EXISTS "dodaj_rok"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
