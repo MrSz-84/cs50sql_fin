@@ -1,3 +1,4 @@
+-- DATABASE CREATION SECTION --
 -- Creates miesiace table, containing Polish month names.
 CREATE TABLE IF NOT EXISTS "miesiace" (
     "id" INTEGER,
@@ -63,7 +64,7 @@ CREATE TABLE IF NOT EXISTS "syndicates" (
 -- producers, and syndicates ids.
 CREATE TABLE IF NOT EXISTS "brandy" (
     "id" INTEGER,
-    "brand" INTEGER NOT NULL UNIQUE,
+    "brand" TEXT NOT NULL UNIQUE,
     "producer_id" INTEGER NOT NULL,
     "syndicate_id" INTEGER NOT NULL,
     PRIMARY KEY('id'),
@@ -175,7 +176,65 @@ CREATE TABLE IF NOT EXISTS "spoty" (
 );
 
 
--- TRIGGERS SECTION
+-- VIEWS SECTION --
+-- View for instead of usage workaround, in order to populate channels table.
+CREATE VIEW IF NOT EXISTS "populate_channels_view" AS 
+SELECT * FROM "channels";
+
+-- View for instead of usage workaround, in order to populate brands table.
+CREATE VIEW IF NOT EXISTS "populate_brandy_view" AS 
+SELECT * FROM "brandy";
+
+
+-- TRIGGERS SECTION --
+-- Populates brandy table from concatenated data inputed into populate_brandy_view's channel column 
+CREATE TRIGGER IF NOT EXISTS "populate_brandy_trig"
+INSTEAD OF INSERT ON "populate_brandy_view"
+FOR EACH ROW
+BEGIN
+    INSERT INTO "brandy"("brand", "producer_id", "syndicate_id")
+    SELECT
+        CAST(substring(NEW."brand", 1, instr(NEW."brand", '@|@') - 1) AS TEXT),
+    (SELECT "id" FROM "producers" 
+        WHERE "producer" = (
+            CAST(substring(NEW."brand", instr(NEW."brand" ,'@|@') + 3, 
+                instr(NEW."brand", '#|#') - (instr(NEW."brand" ,'@|@') + 3)
+            ) AS TEXT)
+        )
+    ),
+    (SELECT "id" FROM "syndicates" 
+        WHERE "syndicate" = (
+            CAST(substring(NEW."brand", instr(NEW."brand", '#|#') + 3) AS TEXT)
+        )
+    );
+END;
+
+
+-- CREATE TRIGGER IF NOT EXISTS "populate_brandy_trig"
+-- INSTEAD OF INSERT ON "populate_brandy_view"
+-- FOR EACH ROW
+-- BEGIN
+--     INSERT INTO "brandy"("brand", "producer_id", "syndicate_id")
+--     SELECT
+--         CAST(substring(NEW."brand", 1, instr(NEW."brand", '@|@') - 1) AS TEXT),
+--         CAST(substring(NEW."brand", instr(NEW."brand" ,'@|@') + 3, instr(NEW."brand", '#|#') - (instr(NEW."brand" ,'@|@') + 3)) AS TEXT),
+--         CAST(substring(NEW."brand", instr(NEW."brand", '#|#') + 3) AS TEXT);
+-- END;
+
+-- Populates channels table from concatenated data inputed into populate_channels_view's channel column 
+CREATE TRIGGER IF NOT EXISTS "populate_channels_trig"
+INSTEAD OF INSERT ON "populate_channels_view"
+FOR EACH ROW
+BEGIN
+    INSERT INTO "channels"("channel", "channel_gr_id")
+    SELECT
+        CAST(substring(NEW."channel", 1, instr(NEW."channel", '@|@') - 1) AS TEXT),
+        "id" 
+        FROM "channel_gr"
+        WHERE "channel_gr" = (
+            CAST(substring(NEW."channel", instr(NEW."channel", '@|@') + 3) AS TEXT)
+        );
+END;
 
 -- Populates kody_rek table from concatenated data inputed into opis column
 CREATE TRIGGER IF NOT EXISTS "podziel_opis"
@@ -183,7 +242,7 @@ AFTER INSERT ON "kody_rek"
 FOR EACH ROW
 BEGIN
     UPDATE "kody_rek"
-    SET "kod_rek" = CAST(rtrim(NEW."opis", '@|@') AS INTEGER)
+    SET "kod_rek" = CAST(substring(NEW."opis", 1, instr(NEW."opis", '@|@') - 1) AS INTEGER)
     WHERE "id" = NEW."id";
     UPDATE "kody_rek"
     SET "opis" = CAST(substring(NEW."opis", instr(NEW."opis", '@|@') + 3) AS TEXT)
@@ -247,7 +306,7 @@ BEGIN
 END;
 
 
--- POPULATE SOME TABLES ON CREATION
+-- POPULATE SOME TABLES ON CREATION --
 -- Add month names
 INSERT INTO "miesiace" ("miesiac") VALUES
 ('Styczeń'), ('Luty'), ('Marzec'), ('Kwiecień'), ('Maj'),
@@ -258,7 +317,9 @@ INSERT INTO "miesiace" ("miesiac") VALUES
 -- Add day of week 
 INSERT INTO "dni_tyg" ("dzien_tyg") VALUES
 ('Poniedziałek'), ('Wtorek'), ('Środa'), 
-('Czwartek'), ('Piątek'), ('Sobota'), ('Niedziela')
+('Czwartek'), ('Piątek'), ('Sobota'), ('Niedziela');
 
 
--- VIEWS SECTION
+
+
+
