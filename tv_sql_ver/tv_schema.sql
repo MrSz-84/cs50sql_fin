@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS "data_czas"(
 -- Creates kody_rek table, containing ad codes and brief description of ad contents.
 CREATE TABLE IF NOT EXISTS "kody_rek" (
     "id" INTEGER,
-    "kod_rek" INTEGER NOT NULL UNIQUE,
+    "kod_rek" INTEGER UNIQUE,
     "opis" TEXT NOT NULL,
     PRIMARY KEY("id")
 );
@@ -74,7 +74,8 @@ CREATE TABLE IF NOT EXISTS "brandy" (
 -- Creates channel_gr table, contaning channel group names.
 CREATE TABLE IF NOT EXISTS "channel_gr" (
     "id" INTEGER,
-    "channel_gr" TEXT NOT NULL UNIQUE
+    "channel_gr" TEXT NOT NULL UNIQUE,
+    PRIMARY KEY("id")
 );
 
 -- Creates channels table, contaning channel name channel group id.
@@ -83,13 +84,14 @@ CREATE TABLE IF NOT EXISTS "channels" (
     "channel" TEXT NOT NULL UNIQUE,
     "channel_gr_id" INTEGER NOT NULL,
     PRIMARY KEY("id"),
-    FOREIGN KEY("channel_gr_id") REFERENCES "channels"("id")
+    FOREIGN KEY("channel_gr_id") REFERENCES "channel_gr"("id")
 );
 
 -- Creates dayparts table, containing dayparts at which ads were emitted.
 CREATE TABLE IF NOT EXISTS "dayparts" (
     "id" INTEGER,
-    "daypart" TEXT NOT NULL UNIQUE
+    "daypart" TEXT NOT NULL UNIQUE,
+    PRIMARY KEY("id")
 );
 
 -- Creates pib_real_rels table, containing relative real positions in break.
@@ -173,8 +175,20 @@ CREATE TABLE IF NOT EXISTS "spoty" (
 );
 
 
-
 -- TRIGGERS SECTION
+
+-- Populates kody_rek table from concatenated data inputed into opis column
+CREATE TRIGGER IF NOT EXISTS "podziel_opis"
+AFTER INSERT ON "kody_rek"
+FOR EACH ROW
+BEGIN
+    UPDATE "kody_rek"
+    SET "kod_rek" = CAST(rtrim(NEW."opis", '@|@') AS INTEGER)
+    WHERE "id" = NEW."id";
+    UPDATE "kody_rek"
+    SET "opis" = CAST(substring(NEW."opis", instr(NEW."opis", '@|@') + 3) AS TEXT)
+    WHERE "id" = NEW."id";
+END;
 
 -- Adds entry at dzien table, after population of data row.
 CREATE TRIGGER IF NOT EXISTS "dodaj_dzien"
@@ -231,3 +245,20 @@ BEGIN
     END
     WHERE "id" = NEW."id";
 END;
+
+
+-- POPULATE SOME TABLES ON CREATION
+-- Add month names
+INSERT INTO "miesiace" ("miesiac") VALUES
+('Styczeń'), ('Luty'), ('Marzec'), ('Kwiecień'), ('Maj'),
+('Czerwiec'), ('Lipiec'), ('Sierpień'), ('Wrzesień'),
+('Październik'), ('Listopad'), ('Grudzień');
+
+
+-- Add day of week 
+INSERT INTO "dni_tyg" ("dzien_tyg") VALUES
+('Poniedziałek'), ('Wtorek'), ('Środa'), 
+('Czwartek'), ('Piątek'), ('Sobota'), ('Niedziela')
+
+
+-- VIEWS SECTION
