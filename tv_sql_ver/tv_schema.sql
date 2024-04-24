@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS "progs_before" (
 
 -- Creates progs_after table, containing information after which tv programme given ad was emitted.
 CREATE TABLE IF NOT EXISTS "progs_after" (
-    "id" INTEGER
+    "id" INTEGER,
     "prog_after" TEXT UNIQUE NOT NULL,
     PRIMARY KEY("id")
 );
