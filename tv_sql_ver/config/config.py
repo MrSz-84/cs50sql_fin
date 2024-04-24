@@ -1,0 +1,13 @@
+DB_PATH = './tv_ads.db'
+DATES = {'table': 'data_czas', 'field': 'data', 'type': 'table'}
+AD_CODE = {'table': 'kody_rek', 'field': 'kod_rek', 'type': 'table'}
+BRANDS = {'table': 'brandy', 'field': 'brand', 'type': 'view'}
+CHANNELS = {'table': 'kanaly', 'field': 'kanal', 'type': 'view'}
+DAYPARTS = {'table': 'dayparty', 'field': 'daypart', 'type': 'table'}
+PIB_R = {'table': 'pib_real_rels', 'field': 'pib_real_rel', 'type': 'table'}
+DUR = {'table': 'dlugosci', 'field': 'dlugosc', 'type': 'table'}
+SPOT_CLASS = {'table': 'klasy_spotu', 'field': 'klasa_spotu', 'type': 'table'}
+BLOCK_CODE = {'table': 'kody_bloku', 'field': 'kod_bloku', 'type': 'table'}
+PR_CAMP = {'table': 'prog_kampanie', 'field': 'prog_kampania', 'type': 'table'}
+PR_BEF = {'table': 'programy_przed', 'field': 'program_przed', 'type': 'table'}
+PR_AFT = {'table': 'programy_po', 'field': 'program_po', 'type': 'table'}
