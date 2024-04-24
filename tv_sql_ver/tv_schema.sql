@@ -209,18 +209,6 @@ BEGIN
     );
 END;
 
-
--- CREATE TRIGGER IF NOT EXISTS "populate_brandy_trig"
--- INSTEAD OF INSERT ON "populate_brandy_view"
--- FOR EACH ROW
--- BEGIN
---     INSERT INTO "brandy"("brand", "producer_id", "syndicate_id")
---     SELECT
---         CAST(substring(NEW."brand", 1, instr(NEW."brand", '@|@') - 1) AS TEXT),
---         CAST(substring(NEW."brand", instr(NEW."brand" ,'@|@') + 3, instr(NEW."brand", '#|#') - (instr(NEW."brand" ,'@|@') + 3)) AS TEXT),
---         CAST(substring(NEW."brand", instr(NEW."brand", '#|#') + 3) AS TEXT);
--- END;
-
 -- Populates channels table from concatenated data inputed into populate_channels_view's channel column 
 CREATE TRIGGER IF NOT EXISTS "populate_channels_trig"
 INSTEAD OF INSERT ON "populate_channels_view"
