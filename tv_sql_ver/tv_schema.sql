@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS "miesiace" (
 CREATE TABLE IF NOT EXISTS "dni_tyg" (
     "id" INTEGER,
     "dzien_tyg" TEXT NOT NULL UNIQUE CHECK(
-        dzien_tyg IN (
+        "dzien_tyg" IN (
             'Poniedziałek', 'Wtorek', 'Środa', 
             'Czwartek', 'Piątek', 'Sobota', 'Niedziela'
         )
@@ -72,24 +72,24 @@ CREATE TABLE IF NOT EXISTS "brandy" (
     FOREIGN KEY("syndicate_id") REFERENCES "syndicates"("id")
 );
 
--- Creates channel_gr table, contaning channel group names.
-CREATE TABLE IF NOT EXISTS "channel_gr" (
+-- Creates kanaly_gr table, contaning channel group names.
+CREATE TABLE IF NOT EXISTS "kanaly_gr" (
     "id" INTEGER,
-    "channel_gr" TEXT NOT NULL UNIQUE,
+    "kanal_gr" TEXT NOT NULL UNIQUE,
     PRIMARY KEY("id")
 );
 
--- Creates channels table, contaning channel name channel group id.
-CREATE TABLE IF NOT EXISTS "channels" (
+-- Creates kanaly table, contaning channel name channel group id.
+CREATE TABLE IF NOT EXISTS "kanaly" (
     "id" INTEGER,
-    "channel" TEXT NOT NULL UNIQUE,
-    "channel_gr_id" INTEGER NOT NULL,
+    "kanal" TEXT NOT NULL UNIQUE,
+    "kanal_gr_id" INTEGER NOT NULL,
     PRIMARY KEY("id"),
-    FOREIGN KEY("channel_gr_id") REFERENCES "channel_gr"("id")
+    FOREIGN KEY("kanal_gr_id") REFERENCES "kanaly_gr"("id")
 );
 
--- Creates dayparts table, containing dayparts at which ads were emitted.
-CREATE TABLE IF NOT EXISTS "dayparts" (
+-- Creates dayparty table, containing dayparts at which ads were emitted.
+CREATE TABLE IF NOT EXISTS "dayparty" (
     "id" INTEGER,
     "daypart" TEXT NOT NULL UNIQUE,
     PRIMARY KEY("id")
@@ -109,38 +109,38 @@ CREATE TABLE IF NOT EXISTS "dlugosci" (
     PRIMARY KEY("id")
 );
 
--- Creates spot_classes table, containing type of emitted ad.
-CREATE TABLE IF NOT EXISTS "spot_classes" (
+-- Creates klasy_spotow table, containing type of emitted ad.
+CREATE TABLE IF NOT EXISTS "klasy_spotu" (
     "id" INTEGER,
-    "spot_class" TEXT NOT NULL UNIQUE,
+    "klasa_spotu" TEXT NOT NULL UNIQUE,
     PRIMARY KEY("id")
 );
 
--- Creates block_codes table, containing block codes of an emitted ad.
-CREATE TABLE IF NOT EXISTS "block_codes" (
+-- Creates kody_blokow table, containing block codes of an emitted ad.
+CREATE TABLE IF NOT EXISTS "kody_bloku" (
     "id" INTEGER,
-    "block_code" TEXT NOT NULL UNIQUE,
+    "kod_bloku" TEXT NOT NULL UNIQUE,
     PRIMARY KEY("id")
 );
 
 -- Creates prog_campaigns table, containing information in which tv programme given ad was emitted.
-CREATE TABLE IF NOT EXISTS "prog_campaigns" (
+CREATE TABLE IF NOT EXISTS "prog_kampanie" (
     "id" INTEGER,
-    "prog_campaign" TEXT UNIQUE NOT NULL,
+    "prog_kampania" TEXT UNIQUE NOT NULL,
     PRIMARY KEY("id")
 );
 
--- Creates progs_after table, containing information before which tv programme given ad was emitted.
-CREATE TABLE IF NOT EXISTS "progs_before" (
+-- Creates programy_przed table, containing information before which tv programme given ad was emitted.
+CREATE TABLE IF NOT EXISTS "programy_przed" (
     "id" INTEGER,
-    "prog_before" TEXT UNIQUE NOT NULL,
+    "program_przed" TEXT UNIQUE NOT NULL,
     PRIMARY KEY("id")
 );
 
--- Creates progs_after table, containing information after which tv programme given ad was emitted.
-CREATE TABLE IF NOT EXISTS "progs_after" (
+-- Creates programy_po table, containing information after which tv programme given ad was emitted.
+CREATE TABLE IF NOT EXISTS "programy_po" (
     "id" INTEGER,
-    "prog_after" TEXT UNIQUE NOT NULL,
+    "program_po" TEXT UNIQUE NOT NULL,
     PRIMARY KEY("id")
 );
 
@@ -152,44 +152,44 @@ CREATE TABLE IF NOT EXISTS "spoty" (
     "pib_pos" INTEGER NOT NULL,
     "pib_count" INTEGER NOT NULL,
     "pib_real_rel_id" INTEGER NOT NULL,
-    "spot_class_id" INTEGER NOT NULL,
-    "block_code_id" INTEGER NOT NULL,
+    "klasa_spotu_id" INTEGER NOT NULL,
+    "kod_bloku_id" INTEGER NOT NULL,
     "daypart_id" INTEGER NOT NULL,
     "grp" REAL NOT NULL,
-    "channel_id" INTEGER NOT NULL,
+    "kanal_id" INTEGER NOT NULL,
     "brand_id" INTEGER NOT NULL,
     "dlugosc" INTEGER NOT NULL,
     "kod_rek_id" INTEGER NOT NULL,
-    "prog_campaign_id" INTEGER NOT NULL,
-    "prog_before_id" INTEGER NOT NULL,
-    "prog_after_id" INTEGER NOT NULL,
+    "prog_kampania_id" INTEGER NOT NULL,
+    "program_przed_id" INTEGER NOT NULL,
+    "program_po_id" INTEGER NOT NULL,
     PRIMARY KEY("id"),
     FOREIGN KEY("pib_real_rel_id") REFERENCES "pib_real_rels"("id"),
-    FOREIGN KEY("spot_class_id") REFERENCES "spot_classes"("id"),
-    FOREIGN KEY("block_code_id") REFERENCES "block_codes"("id"),
-    FOREIGN KEY("channel_id") REFERENCES "channels"("id"),
+    FOREIGN KEY("klasa_spotu_id") REFERENCES "klasay_spotu"("id"),
+    FOREIGN KEY("kod_bloku_id") REFERENCES "kody_bloku"("id"),
+    FOREIGN KEY("kanal_id") REFERENCES "kanaly"("id"),
     FOREIGN KEY("brand_id") REFERENCES "brandy"("id"),
     FOREIGN KEY("kod_rek_id") REFERENCES "kody_rek"("id"),
-    FOREIGN KEY("prog_campaign_id") REFERENCES "prog_campaigns"("id"),
-    FOREIGN KEY("prog_before_id") REFERENCES "progs_before"("id"),
-    FOREIGN KEY("prog_after_id") REFERENCES "progs_after"("id")
+    FOREIGN KEY("prog_kampania_id") REFERENCES "prog_kampanie"("id"),
+    FOREIGN KEY("program_przed_id") REFERENCES "programy_przed"("id"),
+    FOREIGN KEY("program_po_id") REFERENCES "programy_po"("id")
 );
 
 
 -- VIEWS SECTION --
--- View for instead of usage workaround, in order to populate channels table.
-CREATE VIEW IF NOT EXISTS "populate_channels_view" AS 
-SELECT * FROM "channels";
+-- View for instead of usage workaround, in order to populate kanaly table.
+CREATE VIEW IF NOT EXISTS "podziel_kanaly_view" AS 
+SELECT * FROM "kanaly";
 
--- View for instead of usage workaround, in order to populate brands table.
-CREATE VIEW IF NOT EXISTS "populate_brandy_view" AS 
+-- View for instead of usage workaround, in order to populate brandy table.
+CREATE VIEW IF NOT EXISTS "podziel_brandy_view" AS 
 SELECT * FROM "brandy";
 
 
 -- TRIGGERS SECTION --
--- Populates brandy table from concatenated data inputed into populate_brandy_view's channel column 
-CREATE TRIGGER IF NOT EXISTS "populate_brandy_trig"
-INSTEAD OF INSERT ON "populate_brandy_view"
+-- Populates brandy table from concatenated data inputed into podziel_brandy_view channel column 
+CREATE TRIGGER IF NOT EXISTS "podziel_brandy_trig"
+INSTEAD OF INSERT ON "podziel_brandy_view"
 FOR EACH ROW
 BEGIN
     INSERT INTO "brandy"("brand", "producer_id", "syndicate_id")
@@ -209,18 +209,18 @@ BEGIN
     );
 END;
 
--- Populates channels table from concatenated data inputed into populate_channels_view's channel column 
-CREATE TRIGGER IF NOT EXISTS "populate_channels_trig"
-INSTEAD OF INSERT ON "populate_channels_view"
+-- Populates kanaly table from concatenated data inputed into podziel_kanaly_view channel column 
+CREATE TRIGGER IF NOT EXISTS "podziel_kanaly_trig"
+INSTEAD OF INSERT ON "podziel_kanaly_view"
 FOR EACH ROW
 BEGIN
-    INSERT INTO "channels"("channel", "channel_gr_id")
+    INSERT INTO "kanaly"("kanal", "kanal_gr_id")
     SELECT
-        CAST(substring(NEW."channel", 1, instr(NEW."channel", '@|@') - 1) AS TEXT),
+        CAST(substring(NEW."kanal", 1, instr(NEW."kanal", '@|@') - 1) AS TEXT),
         "id" 
-        FROM "channel_gr"
-        WHERE "channel_gr" = (
-            CAST(substring(NEW."channel", instr(NEW."channel", '@|@') + 3) AS TEXT)
+        FROM "kanaly_gr"
+        WHERE "kanal_gr" = (
+            CAST(substring(NEW."kanal", instr(NEW."kanal", '@|@') + 3) AS TEXT)
         );
 END;
 
