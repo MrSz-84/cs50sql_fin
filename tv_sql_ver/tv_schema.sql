@@ -192,12 +192,12 @@ CREATE TRIGGER IF NOT EXISTS "podziel_brandy_trig"
 INSTEAD OF INSERT ON "podziel_brandy_view"
 FOR EACH ROW
 BEGIN
-    INSERT INTO "producers"("producer") VALUES(
+    INSERT OR IGNORE INTO "producers"("producer") VALUES(
         CAST(substring(NEW."brand", instr(NEW."brand" ,'@|@') + 3, 
         instr(NEW."brand", '#|#') - (instr(NEW."brand" ,'@|@') + 3)
         ) AS TEXT)
     );
-    INSERT INTO "syndicates"("syndicate") VALUES(
+    INSERT OR IGNORE INTO "syndicates"("syndicate") VALUES(
         CAST(substring(NEW."brand", instr(NEW."brand", '#|#') + 3) AS TEXT)
     );
     INSERT INTO "brandy"("brand", "producer_id", "syndicate_id")
@@ -222,7 +222,7 @@ CREATE TRIGGER IF NOT EXISTS "podziel_kanaly_trig"
 INSTEAD OF INSERT ON "podziel_kanaly_view"
 FOR EACH ROW
 BEGIN
-    INSERT INTO "kanaly_gr"("kanal_gr") VALUES(
+    INSERT OR IGNORE INTO "kanaly_gr"("kanal_gr") VALUES(
         CAST(substring(NEW."kanal", instr(NEW."kanal", '@|@') + 3) AS TEXT)
     );
     INSERT INTO "kanaly"("kanal", "kanal_gr_id")
