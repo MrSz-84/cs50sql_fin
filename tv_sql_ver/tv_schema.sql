@@ -192,6 +192,14 @@ CREATE TRIGGER IF NOT EXISTS "podziel_brandy_trig"
 INSTEAD OF INSERT ON "podziel_brandy_view"
 FOR EACH ROW
 BEGIN
+    INSERT INTO "producers"("producer") VALUES(
+        CAST(substring(NEW."brand", instr(NEW."brand" ,'@|@') + 3, 
+        instr(NEW."brand", '#|#') - (instr(NEW."brand" ,'@|@') + 3)
+        ) AS TEXT)
+    );
+    INSERT INTO "syndicates"("syndicate") VALUES(
+        CAST(substring(NEW."brand", instr(NEW."brand", '#|#') + 3) AS TEXT)
+    );
     INSERT INTO "brandy"("brand", "producer_id", "syndicate_id")
     SELECT
         CAST(substring(NEW."brand", 1, instr(NEW."brand", '@|@') - 1) AS TEXT),
@@ -214,6 +222,9 @@ CREATE TRIGGER IF NOT EXISTS "podziel_kanaly_trig"
 INSTEAD OF INSERT ON "podziel_kanaly_view"
 FOR EACH ROW
 BEGIN
+    INSERT INTO "kanaly_gr"("kanal_gr") VALUES(
+        CAST(substring(NEW."kanal", instr(NEW."kanal", '@|@') + 3) AS TEXT)
+    );
     INSERT INTO "kanaly"("kanal", "kanal_gr_id")
     SELECT
         CAST(substring(NEW."kanal", 1, instr(NEW."kanal", '@|@') - 1) AS TEXT),
@@ -237,7 +248,7 @@ BEGIN
     WHERE "id" = NEW."id";
 END;
 
--- Adds entry at dzien table, after population of data row.
+-- Adds entry at dzien column, after population of data row.
 CREATE TRIGGER IF NOT EXISTS "dodaj_dzien"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
@@ -250,7 +261,7 @@ BEGIN
     WHERE "id" = NEW."id";
 END;
 
--- Adds entry at dzien_tyg_nr table, after population of data row.
+-- Adds entry at dzien_tyg_nr column, after population of data row.
 CREATE TRIGGER IF NOT EXISTS "dodaj_dzien_tyg"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
@@ -259,15 +270,15 @@ BEGIN
     SET "dzien_tyg_nr" = CASE 
         WHEN NEW."dzien_tyg_nr" IS NULL THEN
             CASE 
-                WHEN CAST(strftime('%u', NEW."data") AS INTEGER) = 0 THEN 7
-                ELSE CAST(strftime('%u', NEW."data") AS INTEGER)
+                WHEN CAST(strftime('%w', NEW."data") AS INTEGER) = 0 THEN 7
+                ELSE CAST(strftime('%w', NEW."data") AS INTEGER)
             END
         ELSE NEW."dzien_tyg_nr"
     END
     WHERE "id" = NEW."id";
 END;
 
--- Adds entry at tydzien table, after population of data row.
+-- Adds entry at tydzien column, after population of data row.
 CREATE TRIGGER IF NOT EXISTS "dodaj_tydzien"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
@@ -280,7 +291,20 @@ BEGIN
     WHERE "id" = NEW."id";
 END;
 
--- Adds entry at rok table, after population of data row.
+-- Adds entry at miesiac_nr column, after population of data row.
+CREATE TRIGGER IF NOT EXISTS "dodaj_miesiac"
+AFTER INSERT ON "data_czas"
+FOR EACH ROW
+BEGIN
+    UPDATE "data_czas" 
+    SET "miesiac_nr" = CASE
+        WHEN NEW."miesiac_nr" IS NULL THEN CAST(strftime('%m', NEW."data") AS INTEGER)
+        ELSE NEW."miesiac_nr"
+    END
+    WHERE "id" = NEW."id";
+END;
+
+-- Adds entry at rok column, after population of data row.
 CREATE TRIGGER IF NOT EXISTS "dodaj_rok"
 AFTER INSERT ON "data_czas"
 FOR EACH ROW
