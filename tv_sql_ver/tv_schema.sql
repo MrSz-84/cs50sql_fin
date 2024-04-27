@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS "programy_po" (
 
 -- Creates main table spoty, containing unique spot emissions for every analysed brand.
 CREATE TABLE IF NOT EXISTS "spoty" (
-    "id" INTEGER
+    "id" INTEGER,
     "data" TEXT NOT NULL,
     "czas" TEXT NOT NULL,
     "pib_pos" INTEGER NOT NULL,
@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS "spoty" (
     "grp" REAL NOT NULL,
     "kanal_id" INTEGER NOT NULL,
     "brand_id" INTEGER NOT NULL,
-    "dlugosc" INTEGER NOT NULL,
+    "dlugosc_id" INTEGER NOT NULL,
     "kod_rek_id" INTEGER NOT NULL,
     "prog_kampania_id" INTEGER NOT NULL,
     "program_przed_id" INTEGER NOT NULL,
@@ -172,7 +172,8 @@ CREATE TABLE IF NOT EXISTS "spoty" (
     FOREIGN KEY("kod_rek_id") REFERENCES "kody_rek"("id"),
     FOREIGN KEY("prog_kampania_id") REFERENCES "prog_kampanie"("id"),
     FOREIGN KEY("program_przed_id") REFERENCES "programy_przed"("id"),
-    FOREIGN KEY("program_po_id") REFERENCES "programy_po"("id")
+    FOREIGN KEY("program_po_id") REFERENCES "programy_po"("id"),
+    FOREIGN KEY("dlugosc_id") REFERENCES "dlugosci"("id")
 );
 
 
