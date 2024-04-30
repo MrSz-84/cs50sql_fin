@@ -501,7 +501,7 @@ dfs = pd.read_excel(
     date_format="%d.%m.%Y",
 )
 df_tv = pd.concat(dfs, ignore_index=True)
-df_tv["Date"] = pd.to_datetime(dfs["Date"], dayfirst=True, format="mixed")
+df_tv["Date"] = pd.to_datetime(df_tv["Date"], dayfirst=True, format="mixed")
 del dfs
 df_tv.rename(
     columns={"TRP All 40+ cities 200- (i wsie) Nat[TSV2]": "GRP"}, inplace=True
