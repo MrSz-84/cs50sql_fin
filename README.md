@@ -55,13 +55,6 @@ The data is being transfered into SQL tables as mentioned below. Two main tables
 
 ### Entities
 
-In this section you should answer the following questions:
-
-* Which entities will you choose to represent in your database?
-* What attributes will those entities have?
-* Why did you choose the types you did?
-* Why did you choose the constraints you did?
-
 
 #### <u>ads_desc</u>
 
