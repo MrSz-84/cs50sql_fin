@@ -53,14 +53,6 @@ The data is being transfered into SQL tables as mentioned below. Two main tables
 
 ### Entities
 
-In this section you should answer the following questions:
-
-* Which entities will you choose to represent in your database?
-* What attributes will those entities have?
-* Why did you choose the types you did?
-* Why did you choose the constraints you did?
-
-
 #### <u>ads_desc</u>
 
 The `ads_desc` table contains the data about the advertisement emission, their contents, type,, code, who instructed the broadcast, where it was broadcasted, ad emission time details, costs etc. The smallest unit of this table is one emission. Each row must have entries in all columns except one (`cost`), therefor `NOT NULL` constraints were added. Columns included in this table are:
